@@ -9,7 +9,9 @@ import os
 
 from models import db, Product, Category
 
-app = Flask(_name_)
+
+app = Flask(__name__)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
@@ -22,4 +24,6 @@ db.init_app(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 api = Api(app)
-CORS(app, resources={r"/": {"origins": ""}})
+
+CORS(app, resources={r"/*": {"origins": "*"}})
+
