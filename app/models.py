@@ -27,6 +27,13 @@ class Order(db.Model):
 
 
 
+# Analytics model
+class Order(db.Model):
+    pass
+
+
+
+
 
 # Category model
 class Category(db.Model):
