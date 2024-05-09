@@ -2,12 +2,15 @@
 
 from app import db
 from models import User, Product, Order, Category
+from flask_bcrypt import Bcrypt
 
 # Function to seed the database with initial data
 def seed_database():
+    bcrypt = Bcrypt()
     # Create sample users
-    user1 = User(username='john_doe', email='john@example.com', password='password123')
-    user2 = User(username='jane_smith', email='jane@example.com', password='password456')
+    hashed_password = bcrypt.generate_password_hash('password').decode('utf-8')
+    admin_user = User(email='admin@example.com', password=hashed_password, role='admin')
+    regular_user = User(email='user@example.com', password=hashed_password, role='user')
 
     # Create sample categories
     category1 = Category(name='Skin Care')
@@ -15,8 +18,8 @@ def seed_database():
     category3 = Category(name='Makeup')
 
     # Add sample users and categories to the database
-    db.session.add(user1)
-    db.session.add(user2)
+    db.session.add(admin_user)
+    db.session.add(regular_user)
     db.session.add(category1)
     db.session.add(category2)
     db.session.add(category3)
@@ -31,7 +34,9 @@ def seed_database():
     db.session.add(product2)
     db.session.commit()
 
-    # Create sample orders
+    # Create sample orders (assuming user1 and user2 are instances of User model)
+    user1 = User.query.filter_by(email='admin@example.com').first()
+    user2 = User.query.filter_by(email='user@example.com').first()
     order1 = Order(user_id=user1.id)
     order2 = Order(user_id=user2.id)
 
