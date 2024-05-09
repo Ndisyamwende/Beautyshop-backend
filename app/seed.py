@@ -1,19 +1,23 @@
-from app import db, User
 
-def seed_database():
-    
-    
-    user1 = User(email="james@gmail.com", password="example")
-    user2 = User(email="james1@gmail.com", password="12345678909")
-    user3 = User(email="example@gmail.com", password="example")
+from app import app, db
+from models import User, bcrypt
 
+def seed_data():
+    with app.app_context():
+        
+        db.create_all()
 
-    db.session.add(user1)
-    db.session.add(user2)
-    db.session.add(user3)
-    db.session.commit()
+        
+        hashed_password = bcrypt.generate_password_hash('password').decode('utf-8')
+        admin_user = User(email='admin@example.com', password=hashed_password, role='admin')
+        regular_user = User(email='user@example.com', password=hashed_password, role='user')
+
+        db.session.add(admin_user)
+        db.session.add(regular_user)
+
+        db.session.commit()
 
 if __name__ == "__main__":
-    
-    seed_database()
-    print("Database seeding completed.")
+    seed_data()
+
+
