@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 import os
-import redis
+import re
 
 load_dotenv()
 
