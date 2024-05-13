@@ -21,6 +21,7 @@ def seed_database():
     # Create sample users
     hashed_password = bcrypt.generate_password_hash('password').decode('utf-8')
     admin_user = User(email='admin@example.com', password=hashed_password, role='admin')
+    
     regular_user = User(email='user@example.com', password=hashed_password, role='user')
 
     # Create sample categories

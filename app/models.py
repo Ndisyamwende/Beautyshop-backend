@@ -17,14 +17,25 @@ class User(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f"User('{self.email}', '{self.role}')"
+    
 
-# models for contacts
+class ProductAnalytics(db.Model, SerializerMixin):
+    _tablename_ = 'product_analytics'
 
-class Contact(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    message = db.Column(db.Text, nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    total_sales = db.Column(db.Integer, nullable=False, default=0)
 
-    def __repr__(self):
-        return f"Contact(name={self.name}, email={self.email})"
+    
+    # Define relationship with Product model
+    product = db.relationship('Product', back_populates='analytics')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'product_id': self.product_id,
+            'total_sales': self.total_sales
+        }
+
+    def _repr_(self):
+        return f"<PrductAnalytics{self.id}, {self.product_id}, {self.total_sales}>"

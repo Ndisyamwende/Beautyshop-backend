@@ -1,6 +1,7 @@
 
 from flask import Flask, request
 from flask_bcrypt import Bcrypt
+from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from config import ApplicationConfig
 from flask_cors import CORS
@@ -11,13 +12,22 @@ from models import db,Contact
 
 
 app = Flask(__name__)
+migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
 bcrypt = Bcrypt(app)
-app.config.from_object(ApplicationConfig)
-app.config['JWT_SECRET_KEY'] = 'ce2f33f294'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.json.compact = False
+load_dotenv()
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+
+#app.config.from_object(ApplicationConfig)
+#app.config['JWT_SECRET_KEY'] = 'ce2f33f294'
 jwt = JWTManager(app)
 db.init_app(app)
 api = Api(app)
+
+
 
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "1234"
