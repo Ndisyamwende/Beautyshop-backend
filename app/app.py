@@ -1,8 +1,4 @@
 
-
-
-
-
 from flask import Flask, request
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
@@ -11,6 +7,8 @@ from flask_cors import CORS
 from models import User, db
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
+from models import db,Contact
+
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -70,10 +68,64 @@ class TokenRefresh(Resource):
             return {'access_token': access_token}, 200
         except Exception as e:
             return jsonify(error=str(e)), 500
-
-
-
+    
 api.add_resource(TokenRefresh, '/refresh-token')
+
+
+class ContactResource(Resource):
+    def get(self, contact_id=None):
+        if contact_id:
+            contact = Contact.query.get(contact_id)
+            if not contact:
+                return {'error': 'Contact not found'}, 404
+            return {
+                'id': contact.id,
+                'name': contact.name,
+                'email': contact.email,
+                'message': contact.message
+            }
+        else:
+            contacts = Contact.query.all()
+            contact_list = []
+            for contact in contacts:
+                contact_list.append({
+                    'id': contact.id,
+                    'name': contact.name,
+                    'email': contact.email,
+                    'message': contact.message
+                })
+            return {'contacts': contact_list}
+
+    def post(self):
+        data = request.json
+        new_contact = Contact(name=data['name'], email=data['email'], message=data['message'])
+        db.session.add(new_contact)
+        db.session.commit()
+        return {'message': 'Contact created successfully'}, 201
+
+    def put(self, contact_id):
+        contact = Contact.query.get(contact_id)
+        if not contact:
+            return {'error': 'Contact not found'}, 404
+        data = request.json
+        contact.name = data.get('name', contact.name)
+        contact.email = data.get('email', contact.email)
+        contact.message = data.get('message', contact.message)
+        db.session.commit()
+        return {'message': 'Contact updated successfully'}
+
+    def delete(self, contact_id):
+        contact = Contact.query.get(contact_id)
+        if not contact:
+            return {'error': 'Contact not found'}, 404
+        db.session.delete(contact)
+        db.session.commit()
+        return {'message': 'Contact deleted successfully'}
+
+api.add_resource(ContactResource, '/contacts', '/contacts/<int:contact_id>')
+
+
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

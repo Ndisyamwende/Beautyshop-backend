@@ -1,14 +1,23 @@
+# seed.py
 
-
-    # seed.py
-
-from app import db
-from models import User, Product, Order, Category
+from app import app, db
+from models import User, Product, Order, Category, Contact
 from flask_bcrypt import Bcrypt
 
-# Function to seed the database with initial data
 def seed_database():
     bcrypt = Bcrypt()
+
+    with app.app_context():
+        db.create_all()
+
+        # Create instances of Contact
+        contacts = [
+            Contact(name='John Doe', email='john@example.com', message='Hello, world!'),
+            Contact(name='Jane Doe', email='jane@example.com', message='Nice to meet you!')
+        ]
+        db.session.add_all(contacts)
+        db.session.commit()
+
     # Create sample users
     hashed_password = bcrypt.generate_password_hash('password').decode('utf-8')
     admin_user = User(email='admin@example.com', password=hashed_password, role='admin')
@@ -36,11 +45,9 @@ def seed_database():
     db.session.add(product2)
     db.session.commit()
 
-    # Create sample orders (assuming user1 and user2 are instances of User model)
-    user1 = User.query.filter_by(email='admin@example.com').first()
-    user2 = User.query.filter_by(email='user@example.com').first()
-    order1 = Order(user_id=user1.id)
-    order2 = Order(user_id=user2.id)
+    # Create sample orders
+    order1 = Order(user_id=admin_user.id)
+    order2 = Order(user_id=regular_user.id)
 
     # Add sample orders to the database
     db.session.add(order1)
@@ -51,5 +58,3 @@ def seed_database():
 
 if __name__ == '__main__':
     seed_database()
-
-
