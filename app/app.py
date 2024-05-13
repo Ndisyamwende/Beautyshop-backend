@@ -1,14 +1,17 @@
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from config import ApplicationConfig
+#from config import ApplicationConfig
 from flask_cors import CORS
 from models import User, db
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from models import db,Contact
+from dotenv import load_dotenv
+
+import os
 
 
 app = Flask(__name__)
