@@ -17,6 +17,7 @@ class User(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f"User('{self.email}', '{self.role}')"
+<<<<<<< HEAD
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,20 +38,39 @@ class Customer(db.Model):
     role = db.Column(db.String(20), nullable=False)
 
 class OrderProduct(db.Model):
+=======
+
+class User(db.Model):
+>>>>>>> origin/feature/checkout
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    total_sales = db.Column(db.Integer, nullable=False, default=0)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
 
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
+
+class Customer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_name = db.Column(db.String(100), nullable=False)
+    customer_email = db.Column(db.String(100), nullable=False)
+    total_cost = db.Column(db.Float, nullable=False, default=0)
+    products = db.relationship('OrderProduct', backref='order', lazy=True)
     
-    # Define relationship with Product model
-    product = db.relationship('Product', back_populates='analytics')
+class OrderProduct(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_name = db.Column(db.String(100), nullable=False, unique=True)
+    price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'product_id': self.product_id,
-            'total_sales': self.total_sales
-        }
 
-    def _repr_(self):
-        return f"<PrductAnalytics{self.id}, {self.product_id}, {self.total_sales}>"
+
