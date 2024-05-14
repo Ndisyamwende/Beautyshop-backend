@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify
 
 from flask import Flask, request, jsonify, make_response
@@ -9,6 +10,7 @@ from flask_cors import CORS
 from models import User, db, Product, OrderProduct
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
+from models import db,Contact
 from dotenv import load_dotenv
 
 import os
