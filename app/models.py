@@ -74,6 +74,25 @@ class Product(db.Model, SerializerMixin):
     
     def __repr__(self):
         return f"<Product {self.id}, {self.name}, {self.gender}, {self.category}, {self.description}, {self.price}>"
+    
+    class Category(db.Model):
+      _tablename_ = 'categories'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+
+    # relationship with product
+    products_list = db.relationship('Product', back_populates='category', lazy=True)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+           
+        }
+
+    def _repr_(self):
+        return f"<Category {self.id}, {self.name}>"
 
     
 
