@@ -2,7 +2,8 @@
 
 from app import app, db
 from models import User, Product, Order, Category, Contact
-from flask_bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt,app
+from models import Admin, Customer
 
     # seed.py
 
