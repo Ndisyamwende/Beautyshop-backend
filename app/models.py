@@ -8,15 +8,15 @@ from sqlalchemy import CheckConstraint
 db = SQLAlchemy()
 
 #Define model
-# class User(db.Model, SerializerMixin):
-#     __tablename__ = 'users'
-#     id = db.Column(db.Integer, primary_key=True)
-#     email = db.Column(db.String(120), unique=True, nullable=False)
-#     password = db.Column(db.String(60), nullable=False)
-#     role = db.Column(db.String(20), nullable=False)
+class User(db.Model, SerializerMixin):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
 
-#     def __repr__(self):
-#         return f"User('{self.email}', '{self.role}')"
+    def __repr__(self):
+        return f"User('{self.email}', '{self.role}')"
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -24,13 +24,19 @@ class User(db.Model):
     password = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), nullable=False)
 
-    def __repr__(self):
-        return f"User('{self.email}', '{self.role}')"
-    
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
 
-class ProductAnalytics(db.Model, SerializerMixin):
-    _tablename_ = 'product_analytics'
+class Customer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
 
+class OrderProduct(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     total_sales = db.Column(db.Integer, nullable=False, default=0)
