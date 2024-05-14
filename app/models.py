@@ -18,23 +18,6 @@ class User(db.Model, SerializerMixin):
     def __repr__(self):
         return f"User('{self.email}', '{self.role}')"
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(20), nullable=False)
-
-class Admin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(20), nullable=False)
-
-class Customer(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(20), nullable=False)
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,14 +31,7 @@ class OrderProduct(db.Model):
     product_name = db.Column(db.String(100), nullable=False, unique=True)
     price = db.Column(db.Float, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-
-
-
-    def _repr_(self):
-        return f"<PrductAnalytics{self.id}, {self.product_id}, {self.total_sales}>"
     
-    
-
 class Product(db.Model, SerializerMixin):
     __tablename__ = 'products'
 
@@ -67,17 +43,17 @@ class Product(db.Model, SerializerMixin):
     quantity_available = db.Column(db.Integer)
     image = db.Column(db.String, nullable=True)
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'gender': self.gender,
-            'description': self.description,
-            'price': str(self.price),  
-            'quantity_available': self.quantity_available,
-            'image': self.image,
-            'category': self.category.serialize() if self.category else None
-        }
+    # def serialize(self):
+    #     return {
+    #         'id': self.id,
+    #         'name': self.name,
+    #         'gender': self.gender,
+    #         'description': self.description,
+    #         'price': str(self.price),  
+    #         'quantity_available': self.quantity_available,
+    #         'image': self.image,
+    #         'category': self.category.serialize() if self.category else None
+    #     }
     
 
     # relationship with category 
