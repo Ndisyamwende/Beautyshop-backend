@@ -74,3 +74,6 @@ class Product(db.Model, SerializerMixin):
     
     def __repr__(self):
         return f"<Product {self.id}, {self.name}, {self.gender}, {self.category}, {self.description}, {self.price}>"
+
+    
+
