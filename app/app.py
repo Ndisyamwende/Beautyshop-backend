@@ -77,10 +77,6 @@ class TokenRefresh(Resource):
         
 
 
-
-
-
-
 class OrderProductsResource(Resource):
     def get(self):
         order_products = []
@@ -94,7 +90,7 @@ class OrderProductsResource(Resource):
             order_products.append(product_dict)
         return jsonify(order_products)
 
-    def post(self):
+def post(self):
         data = request.json
         product_name = data.get('product_name')
         price = data.get('price')
@@ -137,7 +133,6 @@ class OrderProductResource(Resource):
             product.quantity = quantity
 
         db.session.commit()
-        
         return jsonify({'message': 'Product updated successfully!'})
 
 api.add_resource(SignUp, '/signup')
@@ -147,5 +142,4 @@ api.add_resource(OrderProductsResource, '/order-products', '/order-products/<int
 api.add_resource(OrderProductResource, '/order-products')
 
 if __name__ == '__main__':
-    db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, port=5500)
