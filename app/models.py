@@ -7,7 +7,7 @@ from sqlalchemy import CheckConstraint
 
 db = SQLAlchemy()
 
-# Define models
+#Define model
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -17,8 +17,21 @@ class User(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f"User('{self.email}', '{self.role}')"
-    
 
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_name = db.Column(db.String(100), nullable=False)
+    customer_email = db.Column(db.String(100), nullable=False)
+    total_cost = db.Column(db.Float, nullable=False, default=0)
+    products = db.relationship('OrderProduct', backref='order', lazy=True)
+    
+class OrderProduct(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_name = db.Column(db.String(100), nullable=False, unique=True)
+    price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    
 class Product(db.Model, SerializerMixin):
     __tablename__ = 'products'
 
@@ -30,17 +43,17 @@ class Product(db.Model, SerializerMixin):
     quantity_available = db.Column(db.Integer)
     image = db.Column(db.String, nullable=True)
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'gender': self.gender,
-            'description': self.description,
-            'price': str(self.price),  
-            'quantity_available': self.quantity_available,
-            'image': self.image,
-            'category': self.category.serialize() if self.category else None
-        }
+    # def serialize(self):
+    #     return {
+    #         'id': self.id,
+    #         'name': self.name,
+    #         'gender': self.gender,
+    #         'description': self.description,
+    #         'price': str(self.price),  
+    #         'quantity_available': self.quantity_available,
+    #         'image': self.image,
+    #         'category': self.category.serialize() if self.category else None
+    #     }
     
 
     # relationship with category 

@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 #from config import ApplicationConfig
 from flask_cors import CORS
-from models import User, db, Product, ProductAnalytics
+from models import User, db, Product, OrderProduct
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
@@ -51,9 +51,9 @@ class SignUp(Resource):
 
         access_token = create_access_token(identity={"email": email, "role": "user"})
         return {"access_token": access_token, "role": "user"}, 200
-api.add_resource(SignUp, '/signup')
     
-    
+
+
 class Login(Resource):
     def post(self):
         email = request.json["email"]
@@ -70,7 +70,8 @@ class Login(Resource):
 
         access_token = create_access_token(identity={"email": email, "role": "user"})
         return {"access_token": access_token, "role": "user"}, 200
-api.add_resource(Login, '/login')
+    
+
 
 class TokenRefresh(Resource):
     @jwt_required(refresh=True)
@@ -81,9 +82,63 @@ class TokenRefresh(Resource):
             return {'access_token': access_token}, 200
         except Exception as e:
             return jsonify(error=str(e)), 500
-    
-api.add_resource(TokenRefresh, '/refresh-token')
+        
 
+
+class OrderProductsResource(Resource):
+    def get(self):
+        order_products = []
+        for product in OrderProduct.query.all():
+            product_dict = {
+                "id": product.id,
+                "product_name": product.product_name,
+                "price": product.price,
+                "quantity": product.quantity,
+            }
+            order_products.append(product_dict)
+        return jsonify(order_products)
+
+def post(self):
+        data = request.json
+        product_name = data.get('product_name')
+        price = data.get('price')
+        quantity = data.get('quantity')
+
+        if not product_name or not price or not quantity:
+            return jsonify({'error': 'Missing data!'}), 400
+
+        new_product = OrderProduct(product_name=product_name, price=price, quantity=quantity)
+        db.session.add(new_product)
+        db.session.commit()
+
+        return jsonify({'message': 'Product added to order successfully!'}), 201
+
+class OrderProductResource(Resource):
+    def delete(self, product_id):
+        product = OrderProduct.query.get(product_id)
+        if product:
+            db.session.delete(product)
+            db.session.commit()
+            return jsonify({'message': 'Product deleted from order successfully!'})
+        else:
+            return jsonify({'error': 'Product not found!'}), 404
+
+    def put(self, product_id):
+        product = OrderProduct.query.get(product_id)
+        if not product:
+            return jsonify({'error': 'Product not found!'}), 404
+
+        data = request.json
+        product_name = data.get('product_name')
+        price = data.get('price')
+        quantity = data.get('quantity')
+
+        if product_name:
+            product.product_name = product_name
+        if price:
+            product.price = price
+        if quantity:
+            product.quantity = quantity
 
 # class ContactResource(Resource):
 #     def get(self, contact_id=None):
@@ -213,5 +268,4 @@ api.add_resource(ProductFilter, '/filter')
 
 
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
-
+    app.run(debug=True, port=5500)
