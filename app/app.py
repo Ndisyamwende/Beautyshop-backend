@@ -78,10 +78,67 @@ class TokenRefresh(Resource):
         
 
 
+class OrderProductsResource(Resource):
+    def get(self):
+        order_products = []
+        for product in OrderProduct.query.all():
+            product_dict = {
+                "id": product.id,
+                "product_name": product.product_name,
+                "price": product.price,
+                "quantity": product.quantity,
+            }
+            order_products.append(product_dict)
+        return jsonify(order_products)
 
+def post(self):
+        data = request.json
+        product_name = data.get('product_name')
+        price = data.get('price')
+        quantity = data.get('quantity')
 
+        if not product_name or not price or not quantity:
+            return jsonify({'error': 'Missing data!'}), 400
+
+        new_product = OrderProduct(product_name=product_name, price=price, quantity=quantity)
+        db.session.add(new_product)
+        db.session.commit()
+
+        return jsonify({'message': 'Product added to order successfully!'}), 201
+
+class OrderProductResource(Resource):
+    def delete(self, product_id):
+        product = OrderProduct.query.get(product_id)
+        if product:
+            db.session.delete(product)
+            db.session.commit()
+            return jsonify({'message': 'Product deleted from order successfully!'})
+        else:
+            return jsonify({'error': 'Product not found!'}), 404
+
+    def put(self, product_id):
+        product = OrderProduct.query.get(product_id)
+        if not product:
+            return jsonify({'error': 'Product not found!'}), 404
+
+        data = request.json
+        product_name = data.get('product_name')
+        price = data.get('price')
+        quantity = data.get('quantity')
+
+        if product_name:
+            product.product_name = product_name
+        if price:
+            product.price = price
+        if quantity:
+            product.quantity = quantity
+
+        db.session.commit()
+        return jsonify({'message': 'Product updated successfully!'})
+
+api.add_resource(SignUp, '/signup')
+api.add_resource(Login, '/login')
 api.add_resource(TokenRefresh, '/refresh-token')
 
 if __name__ == '__main__':
-    db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, port=5500)
