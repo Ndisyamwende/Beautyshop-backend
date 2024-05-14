@@ -8,34 +8,41 @@ from sqlalchemy import CheckConstraint
 db = SQLAlchemy()
 
 # Define models
-class User(db.Model, SerializerMixin):
-    __tablename__ = 'users'
+# class User(db.Model, SerializerMixin):
+#     __tablename__ = 'users'
+#     id = db.Column(db.Integer, primary_key=True)
+#     email = db.Column(db.String(120), unique=True, nullable=False)
+#     password = db.Column(db.String(60), nullable=False)
+#     role = db.Column(db.String(20), nullable=False)
+
+#     def __repr__(self):
+#         return f"User('{self.email}', '{self.role}')"
+
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), nullable=False)
 
-    def __repr__(self):
-        return f"User('{self.email}', '{self.role}')"
-    
-
-class ProductAnalytics(db.Model, SerializerMixin):
-    _tablename_ = 'product_analytics'
-
+class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    total_sales = db.Column(db.Integer, nullable=False, default=0)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
 
-    
-    # Define relationship with Product model
-    product = db.relationship('Product', back_populates='analytics')
+class Customer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'product_id': self.product_id,
-            'total_sales': self.total_sales
-        }
+class OrderProduct(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_name = db.Column(db.String(100), nullable=False, unique=True)
+    price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+
+
 
     def _repr_(self):
         return f"<PrductAnalytics{self.id}, {self.product_id}, {self.total_sales}>"

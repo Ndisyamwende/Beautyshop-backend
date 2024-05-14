@@ -4,6 +4,13 @@ from app import app, db
 from models import User, Product, Order, Category, Contact
 from flask_bcrypt import Bcrypt
 
+    # seed.py
+
+from app import app, db
+from models import User, Product, Order, Category, Contact
+from flask_bcrypt import Bcrypt,app
+from models import Admin, Customer
+
 def seed_database():
     bcrypt = Bcrypt()
 
@@ -55,7 +62,23 @@ def seed_database():
     db.session.add(order2)
     db.session.commit()
 
-    # You can add more sample data as needed
+
+    # Seed Admins
+    hashed_password = bcrypt.generate_password_hash('adminpassword').decode('utf-8')
+    admin1 = Admin(username='admin1', password=hashed_password, role='admin')
+    admin2 = Admin(username='admin2', password=hashed_password, role='admin')
+    db.session.add(admin1)
+    db.session.add(admin2)
+
+    # Seed Customers
+    hashed_password = bcrypt.generate_password_hash('customerpassword').decode('utf-8')
+    customer1 = Customer(username='customer1', password=hashed_password, role='customer')
+    customer2 = Customer(username='customer2', password=hashed_password, role='customer')
+    db.session.add(customer1)
+    db.session.add(customer2)
+
+    db.session.commit()
+
 
 if __name__ == '__main__':
     seed_database()
