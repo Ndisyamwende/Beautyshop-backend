@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 #from config import ApplicationConfig
 from flask_cors import CORS
-from models import User, db, Product, OrderProduct, Contact
+from app.models import User, db, Product, OrderProduct, Contact
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
