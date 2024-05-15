@@ -71,8 +71,9 @@ class Login(Resource):
         if user is None or not bcrypt.check_password_hash(user.password, password):
             return {"error": "Invalid credentials"}, 401
 
-        access_token = create_access_token(identity={"email": email, "role": "user"})
+        access_token = create_access_token(identity={"id": user.id,"email": email, "role": "user"})
         return {"access_token": access_token, "role": "user"}, 200
+    #added a role remember to come and remove it 
 
 api.add_resource(Login, '/login')
     
@@ -93,8 +94,8 @@ api.add_resource(TokenRefresh, '/tokenrefresh')
 
 #User routes
 #the get is for admins only to view their user data base
-#works
 class UserResource(Resource):
+    # does not work but smae code works in another port
     @jwt_required()
     def get(self):
        claims = get_jwt_identity()
@@ -107,40 +108,83 @@ class UserResource(Resource):
        users = [user.to_dict() for user in User.query.all()]
        return make_response(users, 200)
     
-    @jwt_required(optional=True)
+    #works
+    @jwt_required()
     def post(self):
-        current_user = get_jwt_identity()
-
+        claims = get_jwt_identity()
+        if claims['role'] != 'admin':
+            return {"error": "Only admins can create add new employees"}, 403
+        
         data = request.get_json()
         if not data:
             return {"error": "Missing data in request"}, 400
         
-        if 'department' in data:
-            if not current_user or current_user.get('role') != 'admin':
-                return {"error": "Only admins can hire new team member"}, 403
-            
-            hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-            user = User(
-                username=data['username'], 
-                email=data['email'],
-                role=data['role'],
-                password=hashed_password,
-                department=data['department']
-            )
-        else:
-            hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-            user = User(
-                username=data['username'], 
-                email=data['email'],
-                password=hashed_password,
-                role='user',  
-                department=None  
+        hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+        user = User(
+            username=data['username'], 
+            email=data['email'],
+            role=data['role'],
+            password=hashed_password,
+            department=data['department'],
             )
         
         db.session.add(user)
         db.session.commit()
         return make_response(user.to_dict(), 201)
 api.add_resource(UserResource, '/user')
+
+ #the patch for the user to edit their profile  and get to view their profile  
+#the get works
+class UserById(Resource):
+    @jwt_required()
+    def get(self, id):
+        user = User.query.filter_by(id=id).first()
+        if user is None:
+            return {"error": "User not found"}, 404
+        response_dict = user.to_dict()
+        return make_response(response_dict, 200)
+    
+    #works
+    @jwt_required()
+    def patch(self, id):
+        claims = get_jwt_identity()
+        user = User.query.filter_by(id=id).first()
+        if user is None:
+            return {"error": "User not found"}, 404
+
+        data = request.get_json()
+        if claims['role'] == 'admin':
+            if all(key in data for key in ['username', 'email', 'password', 'department', 'role']):
+                try:   
+                    user.username = data['username']
+                    user.email = data['email']
+                    user.department = data['department']
+                    user.role = data['role']
+                    user.password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+                    db.session.commit()
+                    return make_response(user.to_dict(), 200)
+                
+                except AssertionError:
+                    return {"errors": ["validation errors"]}, 400
+            else:
+                return {"errors": ["validation errors"]}, 400
+        elif claims['role'] == 'user' and any(key in data for key in ['password', 'username', 'email']):
+            try:
+                if 'password' in data:
+                    user.password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+                if 'username' in data:
+                    user.name = data['username']
+                if 'email' in data:
+                    user.email = data['email']
+                db.session.commit()
+                return make_response(user.to_dict(), 200)
+            except AssertionError:
+                return {"errors": ["validation errors"]}, 400
+        else:
+            return {"error": "Unauthorized"}, 403
+
+api.add_resource(UserById, '/users/<int:id>')
+
         
 class OrderItemsResource(Resource):
     def get(self):

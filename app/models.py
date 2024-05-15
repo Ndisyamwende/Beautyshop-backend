@@ -11,7 +11,7 @@ db = SQLAlchemy()
 #define model
 
 #user model
-class User(db.Model):
+class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -32,6 +32,7 @@ class User(db.Model):
     #         'username': self.username,
     #         'email': self.email,
     #         'role': self.role,
+    #         'department': self.department,
     #         'address': self.address
     #     }
 
