@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 #from config import ApplicationConfig
 from flask_cors import CORS
-from .models import User, Product, OrderItem, Contact, db
+from .models import User, Product, OrderItem, Contact, db, Order
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
@@ -49,7 +49,7 @@ class SignUp(Resource):
         db.session.add(new_user)
         db.session.commit()
 
-        access_token = create_access_token(identity={"email": email, "role": "user" })
+        access_token = create_access_token(identity={"id": "user.id", "email": email, "role": "user" })
         return {"access_token": access_token, "role": "user"}, 200
     
 api.add_resource(SignUp, '/signup')
@@ -63,7 +63,7 @@ class Login(Resource):
         password = request.json["password"]
 
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
-            access_token = create_access_token(identity={"email": email, "role": "admin"})
+            access_token = create_access_token(identity={"email": email, "role": "admin","id": "user.id"})
             return {"access_token": access_token, "role": "admin"}, 200
 
         user = User.query.filter_by(email=email).first()
@@ -184,6 +184,36 @@ class UserById(Resource):
             return {"error": "Unauthorized"}, 403
 
 api.add_resource(UserById, '/users/<int:id>')
+
+class OrderResource(Resource):
+    
+    @jwt_required()
+    def get(self):
+       claims = get_jwt_identity()
+       user_id = claims['id']
+       user_role = claims['role']
+
+       if user_role != 'admin':
+            return {"error": "Unauthorized"}, 403
+       
+       order = [Order.to_dict() for user in Order.query.all()]
+       return make_response(order, 200)
+    
+api.add_resource(OrderResource, '/orders')
+
+
+class OrderById(Resource):
+   #works
+    @jwt_required()
+    def get(self, id):
+        order = Order.query.filter_by(id=id).first()
+        if order is None:
+            return{"error": "order not found"}, 404
+        response_dict = order.to_dict()
+        return make_response(response_dict, 200)
+    
+api.add_resource(OrderById, '/order/<int:id>')
+
 
         
 class OrderItemsResource(Resource):
