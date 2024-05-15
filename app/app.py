@@ -1,16 +1,13 @@
-
 from flask import Flask, request, jsonify
-
 from flask import Flask, request, jsonify, make_response
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 #from config import ApplicationConfig
 from flask_cors import CORS
-from models import User, db, Product, OrderProduct
+from models import User, db, Product, OrderProduct, Contact
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
-from models import db,Contact
 from dotenv import load_dotenv
 
 import os
@@ -86,6 +83,64 @@ class TokenRefresh(Resource):
             return jsonify(error=str(e)), 500
         
 
+#User routes
+#the get is for admins only to view their user data base
+#works
+class UserResource(Resource):
+    @jwt_required()
+    def get(self):
+       claims = get_jwt_identity()
+       user_id = claims['id']
+       user_role = claims['role']
+
+       if user_role != 'admin':
+            return {"error": "Unauthorized"}, 403
+       
+       users = [user.to_dict() for user in User.query.all()]
+       return make_response(users, 200)
+    
+api.add_resource(UserResource, '/user')
+        
+ #the patch for the user to edit their profile  and get to view their profile  
+#doesn't work 
+class UserById(Resource):
+    @jwt_required()
+    def get(self, id):
+        user = User.query.filter_by(id=id).first()
+        if user is None:
+            return {"error": "User not found"}, 404
+        response_dict = user.to_dict()
+        return make_response(response_dict, 200)
+
+    @jwt_required()
+    def patch(self, id):
+        claims = get_jwt_identity()
+        user = User.query.filter_by(id=id).first()
+        if user is None:
+            return {"error": "User not found"}, 404
+
+        data = request.get_json()
+        if claims['role'] != 'user':
+            return {"error": "Unauthorized"}, 403
+        
+        if not any(key in data for key in ['name', 'email', 'password']):
+            return {"error": "No valid fields to update"}, 400
+
+        try:
+            if 'password' in data:
+                user.password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+            if 'name' in data:
+                user.name = data['name']
+            if 'email' in data:
+                user.email = data['email']
+            db.session.commit()
+            return make_response(user.serialize(), 200)
+        except Exception as e:
+            return {"error": str(e)}, 400
+
+api.add_resource(UserById, '/users/<int:id>')
+        
+
 
 class OrderProductsResource(Resource):
     def get(self):
@@ -142,59 +197,58 @@ class OrderProductResource(Resource):
         if quantity:
             product.quantity = quantity
 
-# class ContactResource(Resource):
-#     def get(self, contact_id=None):
-#         if contact_id:
-#             contact = Contact.query.get(contact_id)
-#             if not contact:
-#                 return {'error': 'Contact not found'}, 404
-#             return {
-#                 'id': contact.id,
-#                 'name': contact.name,
-#                 'email': contact.email,
-#                 'message': contact.message
-#             }
-#         else:
-#             contacts = Contact.query.all()
-#             contact_list = []
-#             for contact in contacts:
-#                 contact_list.append({
-#                     'id': contact.id,
-#                     'name': contact.name,
-#                     'email': contact.email,
-#                     'message': contact.message
-#                 })
-#             return {'contacts': contact_list}
+#class routes
+class ContactResource(Resource):
+    def get(self, contact_id=None):
+        if contact_id:
+            contact = Contact.query.get(contact_id)
+            if not contact:
+                return {'error': 'Contact not found'}, 404
+            return {
+                'id': contact.id,
+                'name': contact.name,
+                'email': contact.email,
+                'message': contact.message
+            }
+        else:
+            contacts = Contact.query.all()
+            contact_list = []
+            for contact in contacts:
+                contact_list.append({
+                    'id': contact.id,
+                    'name': contact.name,
+                    'email': contact.email,
+                    'message': contact.message
+                })
+            return {'contacts': contact_list}
 
-#     def post(self):
-#         data = request.json
-#         new_contact = Contact(name=data['name'], email=data['email'], message=data['message'])
-#         db.session.add(new_contact)
-#         db.session.commit()
-#         return {'message': 'Contact created successfully'}, 201
+    def post(self):
+        data = request.json
+        new_contact = Contact(name=data['name'], email=data['email'], message=data['message'])
+        db.session.add(new_contact)
+        db.session.commit()
+        return {'message': 'Contact created successfully'}, 201
 
-#     def put(self, contact_id):
-#         contact = Contact.query.get(contact_id)
-#         if not contact:
-#             return {'error': 'Contact not found'}, 404
-#         data = request.json
-#         contact.name = data.get('name', contact.name)
-#         contact.email = data.get('email', contact.email)
-#         contact.message = data.get('message', contact.message)
-#         db.session.commit()
-#         return {'message': 'Contact updated successfully'}
+    def put(self, contact_id):
+        contact = Contact.query.get(contact_id)
+        if not contact:
+            return {'error': 'Contact not found'}, 404
+        data = request.json
+        contact.name = data.get('name', contact.name)
+        contact.email = data.get('email', contact.email)
+        contact.message = data.get('message', contact.message)
+        db.session.commit()
+        return {'message': 'Contact updated successfully'}
 
-#     def delete(self, contact_id):
-#         contact = Contact.query.get(contact_id)
-#         if not contact:
-#             return {'error': 'Contact not found'}, 404
-#         db.session.delete(contact)
-#         db.session.commit()
-#         return {'message': 'Contact deleted successfully'}
+    def delete(self, contact_id):
+        contact = Contact.query.get(contact_id)
+        if not contact:
+            return {'error': 'Contact not found'}, 404
+        db.session.delete(contact)
+        db.session.commit()
+        return {'message': 'Contact deleted successfully'}
 
-# api.add_resource(ContactResource, '/contacts', '/contacts/<int:contact_id>')
-
-
+api.add_resource(ContactResource, '/contacts', '/contacts/<int:contact_id>')
 
 
 #Product Routes
