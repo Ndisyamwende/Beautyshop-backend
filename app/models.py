@@ -155,8 +155,8 @@ class Product(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<Product {self.id}, {self.name}, {self.gender}, {self.category}, {self.description}, {self.price}>"
     
-    class Category(db.Model, SerializerMixin):
-      _tablename_ = 'categories'
+class Category(db.Model, SerializerMixin):
+    _tablename_ = 'categories'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
