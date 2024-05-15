@@ -85,6 +85,33 @@ class Order(db.Model, SerializerMixin):
 
     
 class OrderProduct(db.Model, SerializerMixin):
+    
+        #relationship with user
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    customer = db.relationship('User', back_populates='orders')
+
+     #relationship with orderitem
+    order_product = db.relationship('OrderItem', back_populates='order', lazy=True)
+      
+      #relationship with payment model
+    payment = db.relationship('Payment', back_populates='order', uselist=False)
+
+    # def serialize(self):
+    #     return {
+    #         'id': self.id,
+    #         'order_date': self.order_date.strftime('%Y-%m-%d %H:%M:%S'),
+    #         'total_amount': self.total_amount,
+    #         'payment_status': self.payment_status,
+    #         'shipping_address': self.shipping_address,
+    #         'payment_method': self.payment_method,
+    #         'user_id': self.user_id
+    #     }
+    
+    def __repr__(self):
+        return f"<Order {self.id}, {self.order_date}, {self.total_amount}, {self.payment_status}, {self.shipping_address}, {self.payment_method}>"
+
+    
+class OrderProduct(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
@@ -155,8 +182,8 @@ class Product(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<Product {self.id}, {self.name}, {self.gender}, {self.category}, {self.description}, {self.price}>"
     
-    class Category(db.Model, SerializerMixin):
-      _tablename_ = 'categories'
+class Category(db.Model, SerializerMixin):
+    _tablename_ = 'categories'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -168,11 +195,16 @@ class Product(db.Model, SerializerMixin):
     #     return {
     #         'id': self.id,
     #         'name': self.name,
+    # def serialize(self):
+    #     return {
+    #         'id': self.id,
+    #         'name': self.name,
            
     #     }
 
     def _repr_(self):
         return f"<Category {self.id}, {self.name}>"
+    
     
 class Contact(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 #from config import ApplicationConfig
 from flask_cors import CORS
-from models import User, db, Product, OrderProduct, Contact
+from app.models import User, db, Product, OrderProduct, Contact
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
@@ -81,6 +81,64 @@ class TokenRefresh(Resource):
             return {'access_token': access_token}, 200
         except Exception as e:
             return jsonify(error=str(e)), 500
+        
+
+#User routes
+#the get is for admins only to view their user data base
+#works
+class UserResource(Resource):
+    @jwt_required()
+    def get(self):
+       claims = get_jwt_identity()
+       user_id = claims['id']
+       user_role = claims['role']
+
+       if user_role != 'admin':
+            return {"error": "Unauthorized"}, 403
+       
+       users = [user.to_dict() for user in User.query.all()]
+       return make_response(users, 200)
+    
+api.add_resource(UserResource, '/user')
+        
+ #the patch for the user to edit their profile  and get to view their profile  
+#doesn't work 
+class UserById(Resource):
+    @jwt_required()
+    def get(self, id):
+        user = User.query.filter_by(id=id).first()
+        if user is None:
+            return {"error": "User not found"}, 404
+        response_dict = user.to_dict()
+        return make_response(response_dict, 200)
+
+    @jwt_required()
+    def patch(self, id):
+        claims = get_jwt_identity()
+        user = User.query.filter_by(id=id).first()
+        if user is None:
+            return {"error": "User not found"}, 404
+
+        data = request.get_json()
+        if claims['role'] != 'user':
+            return {"error": "Unauthorized"}, 403
+        
+        if not any(key in data for key in ['name', 'email', 'password']):
+            return {"error": "No valid fields to update"}, 400
+
+        try:
+            if 'password' in data:
+                user.password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+            if 'name' in data:
+                user.name = data['name']
+            if 'email' in data:
+                user.email = data['email']
+            db.session.commit()
+            return make_response(user.serialize(), 200)
+        except Exception as e:
+            return {"error": str(e)}, 400
+
+api.add_resource(UserById, '/users/<int:id>')
         
 
 #User routes
