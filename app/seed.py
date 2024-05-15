@@ -1,5 +1,5 @@
-from app import app, db
-from models import User, Product, Order, Category, Contact
+from app.app import app, db
+from app.models import User, Product, Order, Category, Contact
 from flask_bcrypt import Bcrypt
 
 bcrypt = Bcrypt(app)
