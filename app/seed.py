@@ -6,6 +6,7 @@ from models import db, Category, Product, User, Order, OrderItem
 bcrypt = Bcrypt(app)
 
 def seed_data():
+    db.create_all()
     # Delete existing data
     # Category.query.delete()
     # Product.query.delete()

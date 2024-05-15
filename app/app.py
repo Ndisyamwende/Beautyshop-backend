@@ -36,6 +36,7 @@ ADMIN_PASSWORD = "1234"
 
 class SignUp(Resource):
     def post(self):
+        username=request.json["username"]
         email = request.json["email"]
         password = request.json["password"]
 
@@ -44,14 +45,15 @@ class SignUp(Resource):
             return {"error": f"User with email {email} already exists"}, 409
 
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        new_user = User(email=email, password=hashed_password, role="user")
+        new_user = User(email=email, password=hashed_password, role="user", username=username)
         db.session.add(new_user)
         db.session.commit()
 
-        access_token = create_access_token(identity={"email": email, "role": "user"})
+        access_token = create_access_token(identity={"email": email, "role": "user" })
         return {"access_token": access_token, "role": "user"}, 200
     
 api.add_resource(SignUp, '/signup')
+#errors new user does not reflect to the backend 
     
 
 
@@ -105,46 +107,40 @@ class UserResource(Resource):
        users = [user.to_dict() for user in User.query.all()]
        return make_response(users, 200)
     
-api.add_resource(UserResource, '/user')
-        
- #the patch for the user to edit their profile  and get to view their profile  
-#doesn't work 
-class UserById(Resource):
-    @jwt_required()
-    def get(self, id):
-        user = User.query.filter_by(id=id).first()
-        if user is None:
-            return {"error": "User not found"}, 404
-        response_dict = user.to_dict()
-        return make_response(response_dict, 200)
-
-    @jwt_required()
-    def patch(self, id):
-        claims = get_jwt_identity()
-        user = User.query.filter_by(id=id).first()
-        if user is None:
-            return {"error": "User not found"}, 404
+    @jwt_required(optional=True)
+    def post(self):
+        current_user = get_jwt_identity()
 
         data = request.get_json()
-        if claims['role'] != 'user':
-            return {"error": "Unauthorized"}, 403
+        if not data:
+            return {"error": "Missing data in request"}, 400
         
-        if not any(key in data for key in ['name', 'email', 'password']):
-            return {"error": "No valid fields to update"}, 400
-
-        try:
-            if 'password' in data:
-                user.password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-            if 'name' in data:
-                user.name = data['name']
-            if 'email' in data:
-                user.email = data['email']
-            db.session.commit()
-            return make_response(user.serialize(), 200)
-        except Exception as e:
-            return {"error": str(e)}, 400
-
-api.add_resource(UserById, '/users/<int:id>')
+        if 'department' in data:
+            if not current_user or current_user.get('role') != 'admin':
+                return {"error": "Only admins can hire new team member"}, 403
+            
+            hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+            user = User(
+                username=data['username'], 
+                email=data['email'],
+                role=data['role'],
+                password=hashed_password,
+                department=data['department']
+            )
+        else:
+            hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+            user = User(
+                username=data['username'], 
+                email=data['email'],
+                password=hashed_password,
+                role='user',  
+                department=None  
+            )
+        
+        db.session.add(user)
+        db.session.commit()
+        return make_response(user.to_dict(), 201)
+api.add_resource(UserResource, '/user')
         
 class OrderItemsResource(Resource):
     def get(self):

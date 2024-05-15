@@ -15,7 +15,7 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, nullable=False)
+    username = db.Column(db.String, nullable=False,unique=True )
     email = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
     role = db.Column(db.String, nullable=False)
@@ -69,7 +69,7 @@ class Product(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    gender = db.Column(db.String, CheckConstraint("gender IN ('Male', 'Female')"))
+    gender = db.Column(db.String)
     description = db.Column(db.String, nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     quantity_available = db.Column(db.Integer)
@@ -94,6 +94,12 @@ class Product(db.Model, SerializerMixin):
 
     #relationship to order item 
     order_items = db.relationship('OrderItem', back_populates='product', lazy=True)
+
+    @validates('gender')
+    def validate_gender(self, key, gender):
+       if gender not in ('male', 'female'):
+           raise ValueError("Gender must be 'male' or 'female'.")
+       return gender
 
 
 
