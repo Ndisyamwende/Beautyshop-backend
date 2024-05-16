@@ -1,6 +1,6 @@
 from flask_bcrypt import Bcrypt
 from app import app
-from models import db, Category, Product, User, Order, OrderItem
+from models import db, Category, Product, User, Order, OrderItem, Payment
 
 
 bcrypt = Bcrypt(app)
@@ -15,14 +15,14 @@ def seed_data():
     # OrderItem.query.delete()
 
     # user seed
-    Users = [
+    users = [
             User(username="Anna Kioko", email="anna@gmail.com", password=bcrypt.generate_password_hash("Annakioko.123").decode('utf-8'),  role='admin', department='Sales'),
             User(username="Sharon Mwende", email="sharon@gmail.com", password=bcrypt.generate_password_hash("Sharonmwende.123").decode('utf-8'),  role='admin', department='Product Manager'),
             User(username="James Mbuvi", email="james@gmail.com", password=bcrypt.generate_password_hash("Jamesmbuvi.123").decode('utf-8'),  role='user', department='N/A'),
             User(username="Francis Ngigi", email="francis@gmail.com", password=bcrypt.generate_password_hash("francisngigi.123").decode('utf-8'),  role='user', department='N/A'),
             User(username="Ian Kinuthia", email="ian@gmail.com", password=bcrypt.generate_password_hash("Iankinuthia.123").decode('utf-8'),  role='user', department='N/A')
         ]
-    db.session.add_all(Users)
+    db.session.add_all(users)
     db.session.commit()    
         
 
@@ -32,12 +32,10 @@ def seed_data():
     category_makeup = Category(name='Makeup')
     category_Fragrances = Category(name='Fragrances')
     category_skincare = Category(name='Skincare')
-    category_haircare = Category(name='Haircare')
-    category_bathandbody = Category(name='Bathandbody')
-    category_giftssetsandkits = Category(name='Giftssetsandkits')
+
 
     # Add categories to session
-    db.session.add_all([category_makeup, category_Fragrances, category_skincare, category_haircare, category_bathandbody, category_giftssetsandkits])
+    db.session.add_all([category_makeup, category_Fragrances, category_skincare])
     db.session.commit()
 
     # Create products
@@ -46,21 +44,71 @@ def seed_data():
         Product(name='soft matte lip colour', gender='Woman', description=' Luxurious, velvety, long-lasting shades for irresistible lips', price=1000, quantity_available=50, image='https://unsplash.com/photos/beige-becca-lipstick-jaV6cvSEqao', category=category_makeup),
         Product(name='radiant silk', gender='Woman', description='Silky smooth formula for flawless coverage and luminous complexion', price=1500, quantity_available=40, image='https://unsplash.com/photos/two-labeled-bottles-xBqYLnRhfaI', category=category_makeup),
         Product(name='golden glow', gender='Woman', description='Illuminating formula for a radiant, dewy complexion all day', price=500, quantity_available=40, image='https://unsplash.com/photos/white-petaled-flowers-on-top-of-conceleaer-bzBs0_g0lRo', category=category_makeup),
+        Product(name='flawless finish setting powder', gender='Woman', description='Translucent, lightweight setting powder for a matte finish and all-day wear', price=2500, quantity_available=10, image='https://unsplash.com/photos/a-small-jar-of-white-powder-on-a-wooden-tray-qOL9LA6iQAo', category=category_makeup),
+        Product(name='High Shine Lipgloss', gender='Woman', description='Ultra-glossy, non-sticky formula for dazzling lips with a hint of color', price=500, quantity_available=40, image='https://unsplash.com/photos/a-close-up-of-a-flower-on-a-table-zDh4qX5L8dU', category=category_makeup),
+        Product(name='lash lengthening mascara', gender='Woman', description='Intense black formula that lengthens and volumizes lashes for a dramatic look', price=500, quantity_available=20, image='https://unsplash.com/photos/white-petaled-flowers-on-top-of-conceleaer-bzBs0_g0lRo', category=category_makeup),
+
 
         # Fragrances products
         Product(name='enchanted elixir', gender='Woman', description='Enchanted Elixir: Captivating blend of florals and musk, evoking timeless elegance', price=4000.99, quantity_available=30, image='https://unsplash.com/photos/two-clear-glass-perfume-bottles-nka_sIQpKEU', category=category_Fragrances),
         Product(name='midnight legend', gender='Man', description='Description for Product 4', price=4500, quantity_available=20, image='https://unsplash.com/photos/calvin-klein-one-perfume-bottle-C1qrJ9i4EPc', category=category_Fragrances),
         Product(name='whispering petals', gender='Woman', description='Delicate floral notes intertwine for an enchanting, feminine aura', price=5000, quantity_available=20, image='https://unsplash.com/photos/pink-and-silver-perfume-bottle-M3PWXjCiRbQ', category=category_Fragrances),
+        Product(name='ocean breeze', gender='Man', description='Fresh and invigorating scent with notes of sea salt and citrus', price=4800, quantity_available=25, image='https://unsplash.com/photos/kind-dark-skinned-man-being-in-bathroom-while-demonstrating-his-favorite-perfume-preparing-for-the-date-TTd2Db6vnxY', category=category_Fragrances),
+        Product(name='velvet night', gender='Man', description='Luxurious blend of leather and spices for a sophisticated, masculine scent', price=4700, quantity_available=22, image='https://unsplash.com/photos/bleu-de-chanel-perfume-bottle-2b0JeJTEclQ', category=category_Fragrances),
+        Product(name='rose allure', gender='Woman', description='Exquisite blend of roses and jasmine, creating a captivating, feminine fragrance', price=5200, quantity_available=18, image='https://unsplash.com/photos/a-bottle-of-perfume-sitting-on-top-of-a-table-CrU1fVVYRB4', category=category_Fragrances),
+
 
         # Skincare products
         Product(name='i am fabulous', gender='Woman', description='Luxurious body oil, enhances radiance, nourishes, and revitalizes skin', price=1500, quantity_available=10, image='https://unsplash.com/photos/brown-glass-bottle-beside-box-WnVrO-DvxcE', category=category_skincare),
         Product(name='necessarie', gender='Woman', description='Indulgent hydration, leaving skin supple, silky, and irresistibly smooth', price=1000, quantity_available=5, image='https://unsplash.com/photos/white-calvin-klein-soft-tube-p3O5f4u95Lo', category=category_skincare),
-        Product(name='because its you', gender='Woman', description='Luxurious hydration, embracing your unique essence with confidence and grace', price='1500', quantity_available='30', image='https://unsplash.com/photos/white-calvin-klein-one-soft-tube-zot788TQRDU', category=category_skincare)
-    ]
+        Product(name='because its you', gender='Woman', description='Luxurious hydration, embracing your unique essence with confidence and grace', price='1500', quantity_available='30', image='https://unsplash.com/photos/white-calvin-klein-one-soft-tube-zot788TQRDU', category=category_skincare),
+        Product(name='Revitalizing Face Cream', gender='Man', description='Hydrating face cream for men, designed to revitalize and protect the skin', price=2000, quantity_available=35, image='https://unsplash.com/photos/clarins-cream-soft-tube-7lFGxDph5KQ', category=category_skincare),
+        Product(name='Men\'s Daily Moisturizer', gender='Man', description='Lightweight daily moisturizer for men, providing all-day hydration and comfort', price=1800, quantity_available=30, image='https://unsplash.com/photos/white-aveena-pump-bottle-DGlqrcZNtqM', category=category_skincare),
+        Product(name='Men\'s Anti-Aging Serum', gender='Man', description='Powerful anti-aging serum for men, reducing wrinkles and improving skin elasticity', price=2500, quantity_available=25, image='https://unsplash.com/photos/white-plastic-container-07BEYT2hjGw', category=category_skincare)
+]
+    
 
     # Add products to session
     db.session.add_all(products)
     db.session.commit()
+
+    
+    # Seed Orders
+    orders = [
+        Order(timestamp='2023-01-01', total_amount=5000, payment_status='completed', shipping_address='123 Main St', payment_method='card', user_id=users[0].id),
+        Order(timestamp='2023-02-01', total_amount=3000, payment_status='pending', shipping_address='456 Oak St', payment_method='mpesa', user_id=users[1].id),
+        Order(timestamp='2023-03-01', total_amount=1500, payment_status='failed', shipping_address='789 Pine St', payment_method='card', user_id=users[2].id)
+    ]
+    db.session.add_all(orders)
+    db.session.commit()
+
+    # Seed OrderItems
+    order_items = [
+        OrderItem(order_id=orders[0].id, product_id=products[0].id, quantity=2, price=products[0].price),
+        OrderItem(order_id=orders[0].id, product_id=products[1].id, quantity=1, price=products[1].price),
+        OrderItem(order_id=orders[1].id, product_id=products[2].id, quantity=3, price=products[2].price),
+        OrderItem(order_id=orders[2].id, product_id=products[3].id, quantity=1, price=products[3].price)
+    ]
+    db.session.add_all(order_items)
+    db.session.commit()
+
+    # Seed Payments
+    payments = [
+        Payment(amount=5000, method='card', status='completed', order_id=orders[0].id),
+        Payment(amount=3000, method='mpesa', status='pending', order_id=orders[1].id),
+        Payment(amount=1500, method='card', status='failed', order_id=orders[2].id)
+    ]
+    db.session.add_all(payments)
+    db.session.commit()
+
+    # Seed Contacts
+    # contacts = [
+    #     Contact(name='Jane Doe', email='jane.doe@example.com', message='Inquiry about product availability', user_id=users[0].id),
+    #     Contact(name='John Smith', email='john.smith@example.com', message='Question about order status', user_id=users[1].id)
+    # ]
+    # db.session.add_all(contacts)
+    # db.session.commit()
+
 
 
 

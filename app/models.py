@@ -91,8 +91,8 @@ class Product(db.Model, SerializerMixin):
 
     @validates('gender')
     def validate_gender(self, key, gender):
-       if gender not in ('male', 'female'):
-           raise ValueError("Gender must be 'male' or 'female'.")
+       if gender not in ('Man', 'Woman'):
+           raise ValueError("Gender must be 'Man' or 'Woman'.")
        return gender
 
 
@@ -212,10 +212,14 @@ class Payment(db.Model, SerializerMixin):
 #     def _repr_(self):
 #         return f"Contact(name={self.name}, email={self.email})"
     
+    
+    
 
     #issues
     # unable to run migrations
     #data is not relecting back at all
-    #order items is not working at all
+    #order items delete and patch is not working at all
     # not able to seed data 
+    # post operations are not reflecting in the db
+
   
