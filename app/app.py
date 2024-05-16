@@ -328,22 +328,59 @@ api.add_resource(ContactResource, '/contacts', '/contacts/<int:contact_id>')
 #Product Routes
 #post is to create a new product and get to view all products, also only admins can use this routes
 class ProductResource(Resource):
+    #works
+    @jwt_required()
     def get(self):
-        products = [product.serialize() for product in Product.query.all()]
+        claims =get_jwt_identity()
+        user_id = claims['id']
+        user_role = claims['role']
+
+        if user_role != 'admin':
+            return {"error": "Unauthorized"}, 403
+    
+        products = [product.to_dict() for product in Product.query.all()]
         return make_response(products, 200)
     
+    #works
+    @jwt_required()
     def post(self):
-        pass
+        claims = get_jwt_identity()
+        if claims['role'] != 'admin':
+            return {"error": "Only admins can create new products"}, 403
+        
+        
+        data= request.get_json()
+        if not data:
+            return {"error": "Missing data in request"}, 400
+        
+        required_fields = ['name', 'gender', 'description', 'price', 'quantity_available', 'image']
+        for field in required_fields:
+            if field not in data:
+                return {"error": f"Missing field: {field}"}, 400
+        
+        product = Product(
+            name=data['name'], 
+            gender=data['gender'],
+            description=data['description'],
+            price=data['price'],
+            quantity_available=data['quantity_available'],
+            image=data['image']
+            )
+        
+        db.session.add(product)
+        db.session.commit()
+        return make_response(product.to_dict(), 201)
     
 api.add_resource(ProductResource, '/product')
 
 #Product by name, this is for the search bar
 class ProductByName(Resource):
+    #works
     def get(self, name):
         product = Product.query.filter_by(name=name).first()
         if product is None:
             return{"error": "Product not found"}, 404
-        response_dict = product.serialize()
+        response_dict = product.to_dict()
         return make_response(response_dict, 200)
     
 api.add_resource(ProductByName, '/product/<string:name>')
@@ -352,46 +389,83 @@ api.add_resource(ProductByName, '/product/<string:name>')
 
 #product by category also for the searchbar and home page
 class ProductByCategory(Resource):
+    #not sure its giving error product not found
     def get(self, category):
-        product = Product.query.filter_by(category_name=category).all()
-        if product is None:
-            return{"error": "Product not found"}, 404
-        response_dict = product.serialize()
+        products = Product.query.filter_by(category_name=category).all()
+        if not products:
+            return {"error": f"No products found for category '{category}'"}, 404
+
+        response_dict = [product.to_dict() for product in products]
         return make_response(response_dict, 200)
-    
+
 api.add_resource(ProductByCategory, '/product/<string:category>')
     
     
 #this routes are only for admins,the get is for users to be used for product
 class ProductById(Resource):
+    #works
+    @jwt_required()
     def get(self, id):
         product = Product.query.filter_by(id=id).first()
         if product is None:
-            return{"error": "Product not found"}, 404
-        response_dict = product.serialize()
+            return {"error": "Product not found"}, 404
+        response_dict = product.to_dict()
         return make_response(response_dict, 200)
     
+    #works
+    @jwt_required ()
     def delete(self, id):
+            product = Product.query.filter_by(id=id).first()
+            if product is None:
+                return{"error": "Product not found"}, 404
+            
+            product = Product.query.get_or_404(id)
+            db.session.delete(product)
+            db.session.commit()
+            return jsonify({'message': 'Product delete successfully'})
+    
+    @jwt_required()
+    #works
+    def patch(self, id):
+        claims = get_jwt_identity()
         product = Product.query.filter_by(id=id).first()
         if product is None:
-            return{"error": "Product not found"}, 404
-        
-        product = Product.query.get_or_404(id)
-        db.session.delete(product)
-        db.session.commit()
-        return jsonify({'message': 'Product delete successfully'})
-    
-    def patch(self, id):
-        pass
+            return {"error": "Product not found"}, 404
+
+        data = request.get_json()
+        if not data:
+            return {"error": "Missing data in request"}, 400
+
+        for field in ['name', 'gender', 'description', 'price', 'quantity_available', 'image']:
+            if field in data:
+                setattr(product, field, data[field])
+
+        try:
+            db.session.commit()
+            return make_response(product.to_dict(), 200)
+        except AssertionError:
+            return {"errors": ["Validation errors"]}, 400
+
        
 api.add_resource(ProductById, '/products/<int:id>')
 
-# get by filter for the search bar and to be able to filter the gender and price range and 
+# get by filter for the search bar and to be able to filter the gender  
 class ProductFilter(Resource):
-    def get(self):
-        pass
+    #works
+    def get(self, gender=None):
+        if gender:
+            if gender.lower() not in ['male', 'female']:
+                return {"error": "Invalid gender"}, 400
+            
+            products = Product.query.filter_by(gender=gender.capitalize()).all()
+        else:
+            products = Product.query.all()
 
-api.add_resource(ProductFilter, '/filter')
+        products_list = [product.to_dict() for product in products]
+
+        return make_response(products_list, 200)
+
+api.add_resource(ProductFilter, '/filter', '/filter/<string:gender>')
 
 
 
