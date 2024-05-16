@@ -1,3 +1,5 @@
+from app.app import app, db
+from app.models import User, Product, Order, Category, Contact
 from flask_bcrypt import Bcrypt
 from app import app
 from models import db, Category, Product, User, Order, OrderItem, Payment
@@ -101,26 +103,6 @@ def seed_data():
     db.session.add_all(payments)
     db.session.commit()
 
-    # Seed Contacts
-    # contacts = [
-    #     Contact(name='Jane Doe', email='jane.doe@example.com', message='Inquiry about product availability', user_id=users[0].id),
-    #     Contact(name='John Smith', email='john.smith@example.com', message='Question about order status', user_id=users[1].id)
-    # ]
-    # db.session.add_all(contacts)
-    # db.session.commit()
-
-
-
-
-
 if __name__ == '__main__':
     with app.app_context():
         seed_data()
-
-
-
-
-
-
-
-
