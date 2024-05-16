@@ -108,7 +108,7 @@ class Product(db.Model, SerializerMixin):
     
 
     # order model
-class Order(db.Model):
+class Order(db.Model, SerializerMixin):
     __tablename__ = 'orders'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -134,7 +134,7 @@ class Order(db.Model):
 
 
 #order item
-class OrderItem(db.Model):
+class OrderItem(db.Model, SerializerMixin):
     __tablename__ = 'orderitems'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -167,7 +167,7 @@ class Category(db.Model, SerializerMixin):
 
 
 #payment model
-class Payment(db.Model):
+class Payment(db.Model, SerializerMixin):
     __tablename__ = 'payments'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -183,7 +183,7 @@ class Payment(db.Model):
     
     @validates(method)
     def validate_method(self, key, method):
-        if method not in ['card', 'mpesa', 'cash_on_pickup']:
+        if method not in ['card', 'mpesa']:
             raise ValueError("Invalid payment method.")
         return method
 

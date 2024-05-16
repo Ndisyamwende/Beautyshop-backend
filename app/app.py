@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 #from config import ApplicationConfig
 from flask_cors import CORS
-from .models import User, Product, OrderItem,  db, Order, Category
+from .models import User, Product, OrderItem,  db, Order, Category, Payment
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
@@ -186,7 +186,7 @@ class UserById(Resource):
 api.add_resource(UserById, '/users/<int:id>')
 
 class OrderResource(Resource):
-    
+    #works
     @jwt_required()
     def get(self):
        claims = get_jwt_identity()
@@ -216,18 +216,10 @@ api.add_resource(OrderById, '/order/<int:id>')
 
 
         
-class OrderItemsResource(Resource):
+class OrderItem(Resource):
     def get(self):
-        order_products = []
-        for product in OrderItem.query.all():
-            product_dict = {
-                "id": product.id,
-                "product_name": product.product_name,
-                "price": product.price,
-                "quantity": product.quantity,
-            }
-            order_products.append(product_dict)
-        return jsonify(order_products)
+        orderitems = [orderitem.to_dict() for orderitem in OrderItem.query.all()]
+        return make_response({"order_items": orderitems}, 200)
 
 def post(self):
         data = request.json
@@ -243,6 +235,8 @@ def post(self):
         db.session.commit()
 
         return jsonify({'message': 'Product added to order successfully!'}), 201
+
+api.add_resource(OrderItem, '/orderitem')
 
 class OrderItemResource(Resource):
     def delete(self, product_id):
@@ -509,6 +503,32 @@ class CategoryById(Resource):
         return jsonify({'message': 'Category deleted successfully'})
 
 api.add_resource(CategoryById, '/category/<int:id>')
+
+class PaymentResource(Resource):
+    #works
+    def post(self):
+        data = request.get_json()
+        if not data:
+            return {"error": "Missing data in request"}, 400
+
+        try:
+            payment = Payment(
+                amount=data['amount'],
+                method=data['method'],
+                status=data['status'],
+                order_id=data['order_id']
+            )
+
+            db.session.add(payment)
+            db.session.commit()
+            return make_response(payment.to_dict(), 201)
+
+        except KeyError as e:
+            return {"error": f"Missing field in data: {str(e)}"}, 400
+        except ValueError as e:
+            return {"error": str(e)}, 400
+
+api.add_resource(PaymentResource, '/payment')
 
 
 
