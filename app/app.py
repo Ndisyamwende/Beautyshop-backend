@@ -216,54 +216,79 @@ api.add_resource(OrderById, '/order/<int:id>')
 
 
         
-class OrderItem(Resource):
+class OrderItemResource(Resource):
+    #works
     def get(self):
         orderitems = [orderitem.to_dict() for orderitem in OrderItem.query.all()]
         return make_response({"order_items": orderitems}, 200)
 
-def post(self):
+
+#works
+    def post(self):
+            data = request.get_json()
+            if not data:
+                return {"error": "Missing data in request"}, 400
+            
+            required_fields = ['order_id', 'product_id', 'quantity', 'price']
+            for field in required_fields:
+                if field not in data:
+                    return {"error": f"Missing field: {field}"}, 400
+            
+            orderitem = OrderItem(
+                order_id=data['order_id'],
+                product_id=data['product_id'],
+                quantity=data['quantity'],
+                price=data['price']
+            )
+            
+            db.session.add(orderitem)
+            db.session.commit()
+            
+            return (orderitem.to_dict()), 201
+
+api.add_resource(OrderItemResource, '/orderitem')
+
+class OrderItemById(Resource):
+    #works
+    def delete(self, id):
+        product = Product.query.get(id)
+        if product is None:
+            return {"error": "Product not found"}, 404
+        
+        # Delete the product
+        db.session.delete(product)
+        db.session.commit()
+        
+        return jsonify({'message': 'Product deleted successfully'})
+
+
+api.add_resource(OrderItemById, '/orderitem/<int:id>')
+
+class OrderItemPatch(Resource):
+    def patch(self, product_id):
+        # Get the order item by its ID
+        order_item = OrderItem.query.get(product_id)
+        if not order_item:
+            return jsonify({'error': 'Order item not found!'}), 404
+
+        # Get the value to add or subtract from the quantity
         data = request.json
-        product_name = data.get('product_name')
-        price = data.get('price')
-        quantity = data.get('quantity')
+        quantity_change = data.get('quantity_change')
+        if not quantity_change:
+            return jsonify({'error': 'Quantity change not provided!'}), 400
 
-        if not product_name or not price or not quantity:
-            return jsonify({'error': 'Missing data!'}), 400
+        # Update the quantity of the order item
+        new_quantity = order_item.quantity + quantity_change
+        if new_quantity < 0:
+            return jsonify({'error': 'Invalid quantity!'}), 400
 
-        new_product = OrderItem(product_name=product_name, price=price, quantity=quantity)
-        db.session.add(new_product)
+        order_item.quantity = new_quantity
         db.session.commit()
 
-        return jsonify({'message': 'Product added to order successfully!'}), 201
+        return jsonify({'message': 'Quantity updated successfully', 'new_quantity': new_quantity})
 
-api.add_resource(OrderItem, '/orderitem')
-
-class OrderItemResource(Resource):
-    def delete(self, product_id):
-        product = OrderItem.query.get(product_id)
-        if product:
-            db.session.delete(product)
-            db.session.commit()
-            return jsonify({'message': 'Product deleted from order successfully!'})
-        else:
-            return jsonify({'error': 'Product not found!'}), 404
-
-    def put(self, product_id):
-        product = OrderItem.query.get(product_id)
-        if not product:
-            return jsonify({'error': 'Product not found!'}), 404
-
-        data = request.json
-        product_name = data.get('product_name')
-        price = data.get('price')
-        quantity = data.get('quantity')
-
-        if product_name:
-            product.product_name = product_name
-        if price:
-            product.price = price
-        if quantity:
-            product.quantity = quantity
+# Add the route to your API
+api.add_resource(OrderItemPatch, '/orderitem/<int:product_id>/patch')
 
 # #class routes
 # class Contact(Resource):

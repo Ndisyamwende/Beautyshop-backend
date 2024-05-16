@@ -211,4 +211,11 @@ class Payment(db.Model, SerializerMixin):
 
 #     def _repr_(self):
 #         return f"Contact(name={self.name}, email={self.email})"
+    
+
+    #issues
+    # unable to run migrations
+    #data is not relecting back at all
+    #order items is not working at all
+    # not able to seed data 
   
