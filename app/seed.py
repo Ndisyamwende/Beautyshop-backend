@@ -105,4 +105,4 @@ def seed_data():
 
 if __name__ == '__main__':
     with app.app_context():
-        seed_database()
+        seed_data()
