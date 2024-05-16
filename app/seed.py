@@ -4,54 +4,42 @@ from flask_bcrypt import Bcrypt
 
 bcrypt = Bcrypt(app)
 
-def seed_database():
-    #Delete existing data
-    Contact.query.delete()
+from models import db, User, Order, OrderProduct, Product, Category, Contact, Payment
 
-    # Create instances of Contact
-    contacts = [
-        Contact(name='John Doe', email='john@example.com', message='Hello, world!'),
-        Contact(name='Jane Doe', email='jane@example.com', message='Nice to meet you!')
-    ]
-    db.session.add_all(contacts)
-    db.session.commit()
+# Create users
+users_data = [
+    {'username': 'john_doe', 'email': 'john@example.com', 'password': 'password123', 'role': 'user', 'address': '123 Main St'},
+    {'username': 'jane_smith', 'email': 'jane@example.com', 'password': 'password456', 'role': 'user', 'address': '456 Elm St'},
+    {'username': 'admin', 'email': 'admin@example.com', 'password': 'admin123', 'role': 'admin', 'address': '789 Oak St'}
+]
 
-    # Create sample users
-    hashed_password = bcrypt.generate_password_hash('password').decode('utf-8')
-    admin_user = User(email='admin@example.com', password=hashed_password, role='admin')
-    regular_user = User(email='user@example.com', password=hashed_password, role='user')
+for user_data in users_data:
+    user = User(**user_data)
+    db.session.add(user)
 
-    # Create sample categories
-    category1 = Category(name='Skin Care')
-    category2 = Category(name='Scents')
-    category3 = Category(name='Makeup')
+# Create categories
+categories_data = [
+    {'name': 'Skincare'},
+    {'name': 'Makeup'},
+    {'name': 'Scents'}
+]
 
-    # Add sample users and categories to the database
-    db.session.add(admin_user)
-    db.session.add(regular_user)
-    db.session.add(category1)
-    db.session.add(category2)
-    db.session.add(category3)
-    db.session.commit()
+for category_data in categories_data:
+    category = Category(**category_data)
+    db.session.add(category)
 
-    # Create sample products
-    product1 = Product(name='Lipstick', description='Red lipstick for bold lips', price=10.99, stock=100, category_id=3)
-    product2 = Product(name='Moisturizer', description='Hydrating moisturizer for smooth skin', price=19.99, stock=50, category_id=1)
+# Create products
+products_data = [
+    {'name': 'Moisturizer', 'gender': 'Female', 'description': 'Hydrates the skin', 'price': 20.00, 'quantity_available': 100, 'category_id': 1},
+    {'name': 'Lipstick', 'gender': 'Female', 'description': 'Adds color to lips', 'price': 15.00, 'quantity_available': 50, 'category_id': 2},
+    {'name': 'Crede Aventus', 'gender': 'Male', 'description': 'Fruity scent', 'price': 10.00, 'quantity_available': 75, 'category_id': 3}
+]
 
-    # Add sample products to the database
-    db.session.add(product1)
-    db.session.add(product2)
-    db.session.commit()
+for product_data in products_data:
+    product = Product(**product_data)
+    db.session.add(product)
 
-    # Create sample orders
-    order1 = Order(user_id=admin_user.id)
-    order2 = Order(user_id=regular_user.id)
+# Commit changes to the database
+db.session.commit()
 
-    # Add sample orders to the database
-    db.session.add(order1)
-    db.session.add(order2)
-    db.session.commit()
-
-if __name__ == '__main__':
-    with app.app_context():
-        seed_database()
+print("Data seeded successfully!")
