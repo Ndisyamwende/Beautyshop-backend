@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 #from config import ApplicationConfig
 from flask_cors import CORS
-from .models import User, Product, OrderItem, Contact, db, Order
+from .models import User, Product, OrderItem,  db, Order, Category
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
@@ -271,58 +271,56 @@ class OrderItemResource(Resource):
         if quantity:
             product.quantity = quantity
 
-#class routes
-class ContactResource(Resource):
-    def get(self, contact_id=None):
-        if contact_id:
-            contact = Contact.query.get(contact_id)
-            if not contact:
-                return {'error': 'Contact not found'}, 404
-            return {
-                'id': contact.id,
-                'name': contact.name,
-                'email': contact.email,
-                'message': contact.message
-            }
-        else:
-            contacts = Contact.query.all()
-            contact_list = []
-            for contact in contacts:
-                contact_list.append({
-                    'id': contact.id,
-                    'name': contact.name,
-                    'email': contact.email,
-                    'message': contact.message
-                })
-            return {'contacts': contact_list}
+# #class routes
+# class Contact(Resource):
+#     #the get is for admins to view all messages
+#     @jwt_required
+#     def get(self):
+#        claims = get_jwt_identity()
+#        user_id = claims['id']
+#        user_role = claims['role']
 
-    def post(self):
-        data = request.json
-        new_contact = Contact(name=data['name'], email=data['email'], message=data['message'])
-        db.session.add(new_contact)
-        db.session.commit()
-        return {'message': 'Contact created successfully'}, 201
+#        if user_role != 'admin':
+#             return {"error": "Unauthorized"}, 403
+       
+#        contacts = [contacts.to_dict() for contact in Contact.query.all()]
+#        return make_response(contacts, 200)
+    
+#     #for a n individual user to create a message 
+#     @jwt_required
+#     def post(self):
+#         claims = get_jwt_identity()
+#         if claims['role'] != 'user':
+#             return {"error": "Only user can add new messages"}, 403
+        
+#         data = request.get_json()
+#         if not data:
+#             return {"error": "Missing data in request"}, 400
+        
+        
+#         contact = Contact(
+#             username=data['username'], 
+#             email=data['email'],
+#             message=data['message'],
+#             )
+        
+#         db.session.add(contact)
+#         db.session.commit()
+#         return make_response(contact.to_dict(), 201)
+    
+# api.add_resource(Contact,'/contact')
 
-    def put(self, contact_id):
-        contact = Contact.query.get(contact_id)
-        if not contact:
-            return {'error': 'Contact not found'}, 404
-        data = request.json
-        contact.name = data.get('name', contact.name)
-        contact.email = data.get('email', contact.email)
-        contact.message = data.get('message', contact.message)
-        db.session.commit()
-        return {'message': 'Contact updated successfully'}
-
-    def delete(self, contact_id):
-        contact = Contact.query.get(contact_id)
-        if not contact:
-            return {'error': 'Contact not found'}, 404
-        db.session.delete(contact)
-        db.session.commit()
-        return {'message': 'Contact deleted successfully'}
-
-api.add_resource(ContactResource, '/contacts', '/contacts/<int:contact_id>')
+# #for an indiviual to get their own messages
+# class ContactById(Resource):
+#     def get(self, id):
+#         contact = Contact.query.filter_by(id=id).first()
+#         if contact is None:
+#             return {"error": "User not found"}, 404
+#         response_dict = contact.to_dict()
+#         return make_response(response_dict, 200)
+    
+    
+# api.add_resource(ContactById,'/contact/<int:id>') 
 
 
 #Product Routes
@@ -468,6 +466,49 @@ class ProductFilter(Resource):
 api.add_resource(ProductFilter, '/filter', '/filter/<string:gender>')
 
 
+# get all is for admins to see all the categories and to create a new category
+class CategoryResource(Resource):
+    #works
+    def get(self):
+        categories = [category.to_dict() for category in Category.query.all()]
+        return make_response(categories, 200)
+    
+    
+    #works
+    @jwt_required()
+    def post(self):
+        claims = get_jwt_identity()
+        if claims['role'] != 'admin':
+            return {"error": "Only admins can create new categories"}, 403
+        
+        data = request.get_json()
+        if not data:
+            return {"error": "Missing data in request"}, 400
+        
+        category = Category(
+            name=data['name'], 
+            )
+        
+        db.session.add(category)
+        db.session.commit()
+        return make_response(category.to_dict(), 201)
+       
+api.add_resource(CategoryResource, '/category')
+
+class CategoryById(Resource):
+    #works
+    @jwt_required()
+    def delete(self, id):
+        claims = get_jwt_identity()
+        if claims['role'] != 'admin':
+            return {"error": "Only admins can delete categories"}, 403
+        
+        category = Category.query.get_or_404(id)
+        db.session.delete(category)
+        db.session.commit()
+        return jsonify({'message': 'Category deleted successfully'})
+
+api.add_resource(CategoryById, '/category/<int:id>')
 
 
 

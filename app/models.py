@@ -25,16 +25,9 @@ class User(db.Model, SerializerMixin):
     #relationship with order model
     orders = db.relationship('Order', back_populates='customer', lazy=True)
 
-   
-    # def serialize(self):
-    #     return {
-    #         'id': self.id,
-    #         'username': self.username,
-    #         'email': self.email,
-    #         'role': self.role,
-    #         'department': self.department,
-    #         'address': self.address
-    #     }
+        # Define the one-to-many relationship with Contact
+    #contacts = db.relationship('Contact', back_populates='user', lazy=True)
+
 
     @validates('role')
     def validate_role(self, key, role):
@@ -136,17 +129,6 @@ class Order(db.Model):
     payment = db.relationship('Payment', back_populates='order', uselist=False)
 
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'order_date': self.order_date.strftime('%Y-%m-%d %H:%M:%S'),
-            'total_amount': self.total_amount,
-            'payment_status': self.payment_status,
-            'shipping_address': self.shipping_address,
-            'payment_method': self.payment_method,
-            'user_id': self.user_id
-        }
-    
     def __repr__(self):
         return f"<Order {self.id}, {self.order_date}, {self.total_amount}, {self.payment_status}, {self.shipping_address}, {self.payment_method}>"
 
@@ -166,22 +148,12 @@ class OrderItem(db.Model):
     product = db.relationship('Product', back_populates='order_items', lazy=True)
 
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'order_id': self.order_id,
-            'product_id': self.product_id,
-            'quantity': self.quantity,
-            'price': self.price
-        }
-    
-
     def __repr__(self):
         return f"<OrderItem {self.id}, {self.quantity}, {self.price}>"
 
 
 #Category Model
-class Category(db.Model):
+class Category(db.Model, SerializerMixin):
     __tablename__ = 'categories'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -189,13 +161,6 @@ class Category(db.Model):
 
     # relationship with product
     products_list = db.relationship('Product', back_populates='category', lazy=True)
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-           
-        }
 
     def __repr__(self):
         return f"<Category {self.id}, {self.name}>"
@@ -215,15 +180,6 @@ class Payment(db.Model):
     # Define relationship with Order model
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     order = db.relationship('Order', back_populates='payment')
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'amount': self.amount,
-            'method': self.method,
-            'status': self.status,
-            'order_id': self.order_id
-        }
     
     @validates(method)
     def validate_method(self, key, method):
@@ -241,13 +197,18 @@ class Payment(db.Model):
     def __repr__(self):
         return f"<Payment {self.id}, {self.amount}, {self.method}, {self.status}>"
     
-class Contact(db.Model):
-    __tablename__ ='contacts'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    message = db.Column(db.Text, nullable=False)
+# class Contact(db.Model, SerializerMixin):
+#     __tablename__ ='contacts'
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(100), nullable=False)
+#     email = db.Column(db.String(100), nullable=False)
+#     message = db.Column(db.Text, nullable=False)
+#     contacts = db.relationship('Contact', back_populates='user', lazy=True)
 
-    def _repr_(self):
-        return f"Contact(name={self.name}, email={self.email})"
+#         # Define the many-to-one relationship with User
+#     user = db.relationship('User', back_populates='contacts')
+
+
+#     def _repr_(self):
+#         return f"Contact(name={self.name}, email={self.email})"
   
