@@ -5,8 +5,7 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 #from config import ApplicationConfig
 from flask_cors import CORS
-from .models import User, Product, OrderItem,  db, Order, Category, Payment
-from app.models import User, db, Product, OrderProduct, Contact
+from .models import User, Product, OrderItem,  db, Order, Category, Payment,  Contact
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
@@ -25,7 +24,7 @@ load_dotenv()
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 
 #app.config.from_object(ApplicationConfig)
-#app.config['JWT_SECRET_KEY'] = 'ce2f33f294'
+app.config['JWT_SECRET_KEY'] = 'ce2f33f294'
 jwt = JWTManager(app)
 db.init_app(app)
 api = Api(app)
@@ -33,48 +32,60 @@ api = Api(app)
 
 
 ADMIN_EMAIL = "admin@example.com"
-ADMIN_PASSWORD = "1234"
-
+ADMIN_PASSWORD = "admin"
 class SignUp(Resource):
     def post(self):
-        username=request.json["username"]
-        email = request.json["email"]
-        password = request.json["password"]
+        username = request.json.get("username")
+        email = request.json.get("email")
+        password = request.json.get("password")
+
+        if not username or not email or not password:
+            return {"error": "Username, email, and password are required"}, 400
 
         user_exists = User.query.filter_by(email=email).first() is not None
         if user_exists:
             return {"error": f"User with email {email} already exists"}, 409
 
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            role = "admin"
+        else:
+            role = "user"
+
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        new_user = User(email=email, password=hashed_password, role="user", username=username)
+        new_user = User(email=email, password=hashed_password, role=role, username=username)
         db.session.add(new_user)
         db.session.commit()
 
-        access_token = create_access_token(identity={"id": "user.id", "email": email, "role": "user" })
-        return {"access_token": access_token, "role": "user"}, 200
-    
+        access_token = create_access_token(identity={"id": new_user.id, "email": email, "role": role})
+        return {"access_token": access_token, "role": role}, 200
 api.add_resource(SignUp, '/signup')
-#errors new user does not reflect to the backend 
     
-
-
 class Login(Resource):
     def post(self):
-        email = request.json["email"]
-        password = request.json["password"]
+        email = request.json.get("email")
+        password = request.json.get("password")
 
-        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
-            access_token = create_access_token(identity={"email": email, "role": "admin","id": "user.id"})
-            return {"access_token": access_token, "role": "admin"}, 200
+        if not email or not password:
+            return {"error": "Email and password are required"}, 400
+
+        if email == ADMIN_EMAIL:
+            if password == ADMIN_PASSWORD:
+                access_token = create_access_token(identity={"email": email, "role": "admin", "id": "admin"})
+                return {"access_token": access_token, "role": "admin"}, 200
+            else:
+                return {"error": "Incorrect password"}, 401
 
         user = User.query.filter_by(email=email).first()
 
-        if user is None or not bcrypt.check_password_hash(user.password, password):
-            return {"error": "Invalid credentials"}, 401
+        if user is None:
+            return {"error": "Email not found"}, 404
 
-        access_token = create_access_token(identity={"id": user.id,"email": email, "role": "user"})
-        return {"access_token": access_token, "role": "user"}, 200
-    #added a role remember to come and remove it 
+        if not bcrypt.check_password_hash(user.password, password):
+            return {"error": "Incorrect password"}, 401
+
+        access_token = create_access_token(identity={"id": user.id, "email": email, "role": user.role})
+        return {"access_token": access_token, "role": user.role}, 200
+
 
 api.add_resource(Login, '/login')
     
@@ -291,62 +302,60 @@ class OrderItemPatch(Resource):
 # Add the route to your API
 api.add_resource(OrderItemPatch, '/orderitem/<int:product_id>/patch')
 
-# #class routes
-# class Contact(Resource):
-#     #the get is for admins to view all messages
-#     @jwt_required
-#     def get(self):
-#        claims = get_jwt_identity()
-#        user_id = claims['id']
-#        user_role = claims['role']
+#class routes
+class Contact(Resource):
+    #the get is for admins to view all messages
+    @jwt_required
+    def get(self):
+       claims = get_jwt_identity()
+       user_id = claims['id']
+       user_role = claims['role']
 
-#        if user_role != 'admin':
-#             return {"error": "Unauthorized"}, 403
+       if user_role != 'admin':
+            return {"error": "Unauthorized"}, 403
        
-#        contacts = [contacts.to_dict() for contact in Contact.query.all()]
-#        return make_response(contacts, 200)
+       contacts = [contacts.to_dict() for contact in Contact.query.all()]
+       return make_response(contacts, 200)
     
-#     #for a n individual user to create a message 
-#     @jwt_required
-#     def post(self):
-#         claims = get_jwt_identity()
-#         if claims['role'] != 'user':
-#             return {"error": "Only user can add new messages"}, 403
+    #for a n individual user to create a message 
+    @jwt_required
+    def post(self):
+        claims = get_jwt_identity()
+        if claims['role'] != 'user':
+            return {"error": "Only user can add new messages"}, 403
         
-#         data = request.get_json()
-#         if not data:
-#             return {"error": "Missing data in request"}, 400
+        data = request.get_json()
+        if not data:
+            return {"error": "Missing data in request"}, 400
         
         
-#         contact = Contact(
-#             username=data['username'], 
-#             email=data['email'],
-#             message=data['message'],
-#             )
+        contact = Contact(
+            username=data['username'], 
+            email=data['email'],
+            message=data['message'],
+            )
         
-#         db.session.add(contact)
-#         db.session.commit()
-#         return make_response(contact.to_dict(), 201)
+        db.session.add(contact)
+        db.session.commit()
+        return make_response(contact.to_dict(), 201)
     
-# api.add_resource(Contact,'/contact')
+api.add_resource(Contact,'/contact')
 
-# #for an indiviual to get their own messages
-# class ContactById(Resource):
-#     def get(self, id):
-#         contact = Contact.query.filter_by(id=id).first()
-#         if contact is None:
-#             return {"error": "User not found"}, 404
-#         response_dict = contact.to_dict()
-#         return make_response(response_dict, 200)
+#for an indiviual to get their own messages
+class ContactById(Resource):
+    def get(self, id):
+        contact = Contact.query.filter_by(id=id).first()
+        if contact is None:
+            return {"error": "User not found"}, 404
+        response_dict = contact.to_dict()
+        return make_response(response_dict, 200)
     
     
-# api.add_resource(ContactById,'/contact/<int:id>') 
+api.add_resource(ContactById,'/contact/<int:id>') 
 
 
-#Product Routes
-#post is to create a new product and get to view all products, also only admins can use this routes
+
 class ProductResource(Resource):
-    #works
     @jwt_required()
     def get(self):
         claims =get_jwt_identity()
