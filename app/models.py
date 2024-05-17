@@ -4,6 +4,7 @@ from sqlalchemy.orm import validates
 import re
 from enum import Enum
 from sqlalchemy import CheckConstraint
+from sqlalchemy import ForeignKey
 
 db = SQLAlchemy()
 
@@ -26,7 +27,8 @@ class User(db.Model, SerializerMixin):
     orders = db.relationship('Order', back_populates='customer', lazy=True)
 
         # Define the one-to-many relationship with Contact
-    #contacts = db.relationship('Contact', back_populates='user', lazy=True)
+    contacts = db.relationship('Contact', back_populates='user', lazy=True)
+    
 
 
     @validates('role')
@@ -197,29 +199,20 @@ class Payment(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<Payment {self.id}, {self.amount}, {self.method}, {self.status}>"
     
-# class Contact(db.Model, SerializerMixin):
-#     __tablename__ ='contacts'
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(100), nullable=False)
-#     email = db.Column(db.String(100), nullable=False)
-#     message = db.Column(db.Text, nullable=False)
-#     contacts = db.relationship('Contact', back_populates='user', lazy=True)
-
-#         # Define the many-to-one relationship with User
-#     user = db.relationship('User', back_populates='contacts')
+class Contact(db.Model, SerializerMixin):
+    __tablename__ ='contacts'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
+    user = db.relationship('User', back_populates='contacts')
 
 
-#     def _repr_(self):
-#         return f"Contact(name={self.name}, email={self.email})"
+   
+
+
+    def _repr_(self):
+        return f"Contact(name={self.name}, email={self.email})"
     
     
-    
-
-    #issues
-    # unable to run migrations
-    #data is not relecting back at all
-    #order items delete and patch is not working at all
-    # not able to seed data 
-    # post operations are not reflecting in the db
-
-  

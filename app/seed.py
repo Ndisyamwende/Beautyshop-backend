@@ -1,8 +1,11 @@
 from app.app import app, db
 from app.models import User, Product, Order, Category, Contact
+from app import app, db
+from models import User, Product, Order, Category
 from flask_bcrypt import Bcrypt
 from app import app
 from models import db, Category, Product, User, Order, OrderItem, Payment
+from datetime import datetime
 
 
 bcrypt = Bcrypt(app)
@@ -10,11 +13,11 @@ bcrypt = Bcrypt(app)
 def seed_data():
     db.create_all()
     # Delete existing data
-    # Category.query.delete()
-    # Product.query.delete()
-    # User.query.delete()
-    # Order.query.delete()
-    # OrderItem.query.delete()
+    Category.query.delete()
+    Product.query.delete()
+    User.query.delete()
+    Order.query.delete()
+    OrderItem.query.delete()
 
     # user seed
     users = [
@@ -75,11 +78,11 @@ def seed_data():
     db.session.commit()
 
     
-    # Seed Orders
+    
     orders = [
-        Order(timestamp='2023-01-01', total_amount=5000, payment_status='completed', shipping_address='123 Main St', payment_method='card', user_id=users[0].id),
-        Order(timestamp='2023-02-01', total_amount=3000, payment_status='pending', shipping_address='456 Oak St', payment_method='mpesa', user_id=users[1].id),
-        Order(timestamp='2023-03-01', total_amount=1500, payment_status='failed', shipping_address='789 Pine St', payment_method='card', user_id=users[2].id)
+        Order(timestamp=datetime.strptime('2023-01-01', '%Y-%m-%d'), total_amount=5000, payment_status='completed', shipping_address='123 Main St', payment_method='card', user_id=users[0].id),
+        Order(timestamp=datetime.strptime('2023-02-01', '%Y-%m-%d'), total_amount=3000, payment_status='pending', shipping_address='456 Oak St', payment_method='mpesa', user_id=users[1].id),
+        Order(timestamp=datetime.strptime('2023-03-01', '%Y-%m-%d'), total_amount=1500, payment_status='failed', shipping_address='789 Pine St', payment_method='card', user_id=users[2].id)
     ]
     db.session.add_all(orders)
     db.session.commit()
