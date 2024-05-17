@@ -29,8 +29,6 @@ jwt = JWTManager(app)
 db.init_app(app)
 api = Api(app)
 
-
-
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "admin"
 class SignUp(Resource):
@@ -569,3 +567,12 @@ api.add_resource(PaymentResource, '/payment')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5500)
+
+
+
+
+
+
+
+
+

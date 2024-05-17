@@ -216,13 +216,3 @@ class Contact(db.Model, SerializerMixin):
         return f"Contact(name={self.name}, email={self.email})"
     
     
-    
-
-    #issues
-    # unable to run migrations
-    #data is not relecting back at all
-    #order items delete and patch is not working at all
-    # not able to seed data 
-    # post operations are not reflecting in the db
-
-  
