@@ -1,8 +1,10 @@
-from app import app, db
-from models import User, Product, Order, Category
+#from app.app import app, db
+#from app.models import User, Product, Order, Category
+#from app import app, db
+#from models import User, Product, Order, Category
 from flask_bcrypt import Bcrypt
-from app import app
-from models import db, Category, Product, User, Order, OrderItem, Payment
+from .app import app
+from .models import db, Category, Product, User, Order, OrderItem, Payment
 from datetime import datetime
 
 
