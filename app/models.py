@@ -212,7 +212,7 @@ class Contact(db.Model, SerializerMixin):
    
 
 
-    def _repr_(self):
+    def __repr__(self):
         return f"Contact(name={self.name}, email={self.email})"
     
     

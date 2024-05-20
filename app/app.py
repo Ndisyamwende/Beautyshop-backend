@@ -3,9 +3,10 @@ from flask import Flask, request, jsonify, make_response
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended.exceptions import NoAuthorizationError
 #from config import ApplicationConfig
 from flask_cors import CORS
-from .models import User, Product, OrderItem,  db, Order, Category, Payment,  Contact
+from models import db, User, Product, OrderItem, Order, Category, Payment,  Contact
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
@@ -17,7 +18,7 @@ app = Flask(__name__)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
 bcrypt = Bcrypt(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 load_dotenv()
@@ -563,16 +564,5 @@ class PaymentResource(Resource):
 
 api.add_resource(PaymentResource, '/payment')
 
-
-
 if __name__ == '__main__':
     app.run(debug=True, port=5500)
-
-
-
-
-
-
-
-
-
