@@ -1,24 +1,21 @@
+
 from flask_bcrypt import Bcrypt
 from .app import app
 from .models import db, Category, Product, User, Order, OrderItem, Payment
 from datetime import datetime
-
+from sqlalchemy import text
 
 bcrypt = Bcrypt(app)
 
-def seed_data():
-    with app.app_context():
-        # Create all tables
-        db.create_all()
+def execute_sql(sql):
+    """Execute raw SQL."""
+    with db.engine.begin() as connection:
+        connection.execute(text(sql))
 
-        # Delete existing data
-        print('Deleting existing data...')
-        Category.query.delete()
-        Product.query.delete()
-        User.query.delete()
-        Order.query.delete()
-        OrderItem.query.delete()
-        Payment.query.delete()
+if __name__ == '__main__':
+    with app.app_context():
+        print("Clearing db...")
+        execute_sql("TRUNCATE TABLE Category, Product, User, Order, OrderItem, Payment  RESTART IDENTITY CASCADE")
 
         # Seed Users
         print('Creating user objects...')
@@ -116,8 +113,6 @@ def seed_data():
         db.session.add_all(payments)
         db.session.commit()
 
-        print('Complete.')
-
-if __name__ == '__main__':
-
-    seed_data()
+# if __name__ == '__main__':
+#     with app.app_context():
+#         seed_data()

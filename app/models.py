@@ -108,6 +108,13 @@ class Product(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<Product {self.id}, {self.name}, {self.gender}, {self.category}, {self.description}, {self.price}>"
     
+    @validates('category_name')
+    def validate_category_name(self, key, category_name):
+        allowed_categories = ['fragrances', 'skin care', 'makeup']
+        if category_name not in allowed_categories:
+            raise ValueError (' category name must be skincare, makeup or fragrances')
+        return category_name
+    
 
     # order model
 class Order(db.Model, SerializerMixin):
@@ -155,17 +162,17 @@ class OrderItem(db.Model, SerializerMixin):
 
 
 #Category Model
-class Category(db.Model, SerializerMixin):
-    __tablename__ = 'categories'
+# class Category(db.Model, SerializerMixin):
+#     __tablename__ = 'categories'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(100), nullable=False, unique=True)
 
-    # relationship with product
-    products_list = db.relationship('Product', back_populates='category', lazy=True)
+#     # relationship with product
+#     products_list = db.relationship('Product', back_populates='category', lazy=True)
 
-    def __repr__(self):
-        return f"<Category {self.id}, {self.name}>"
+#     def __repr__(self):
+#         return f"<Category {self.id}, {self.name}>"
 
 
 #payment model
