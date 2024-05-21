@@ -495,48 +495,48 @@ api.add_resource(ProductFilter, '/filter', '/filter/<string:gender>')
 
 
 # get all is for admins to see all the categories and to create a new category
-class CategoryResource(Resource):
-    #works
-    def get(self):
-        categories = [category.to_dict() for category in Category.query.all()]
-        return make_response(categories, 200)
+# class CategoryResource(Resource):
+#     #works
+#     def get(self):
+#         categories = [category.to_dict() for category in Category.query.all()]
+#         return make_response(categories, 200)
     
     
-    #works
-    @jwt_required()
-    def post(self):
-        claims = get_jwt_identity()
-        if claims['role'] != 'admin':
-            return {"error": "Only admins can create new categories"}, 403
+#     #works
+#     @jwt_required()
+#     def post(self):
+#         claims = get_jwt_identity()
+#         if claims['role'] != 'admin':
+#             return {"error": "Only admins can create new categories"}, 403
         
-        data = request.get_json()
-        if not data:
-            return {"error": "Missing data in request"}, 400
+#         data = request.get_json()
+#         if not data:
+#             return {"error": "Missing data in request"}, 400
         
-        category = Category(
-            name=data['name'], 
-            )
+#         category = Category(
+#             name=data['name'], 
+#             )
         
-        db.session.add(category)
-        db.session.commit()
-        return make_response(category.to_dict(), 201)
+#         db.session.add(category)
+#         db.session.commit()
+#         return make_response(category.to_dict(), 201)
        
-api.add_resource(CategoryResource, '/category')
+# api.add_resource(CategoryResource, '/category')
 
-class CategoryById(Resource):
-    #works
-    @jwt_required()
-    def delete(self, id):
-        claims = get_jwt_identity()
-        if claims['role'] != 'admin':
-            return {"error": "Only admins can delete categories"}, 403
+# class CategoryById(Resource):
+#     #works
+#     @jwt_required()
+#     def delete(self, id):
+#         claims = get_jwt_identity()
+#         if claims['role'] != 'admin':
+#             return {"error": "Only admins can delete categories"}, 403
         
-        category = Category.query.get_or_404(id)
-        db.session.delete(category)
-        db.session.commit()
-        return jsonify({'message': 'Category deleted successfully'})
+#         category = Category.query.get_or_404(id)
+#         db.session.delete(category)
+#         db.session.commit()
+#         return jsonify({'message': 'Category deleted successfully'})
 
-api.add_resource(CategoryById, '/category/<int:id>')
+# api.add_resource(CategoryById, '/category/<int:id>')
 
 class PaymentResource(Resource):
     #works
