@@ -113,6 +113,6 @@ if __name__ == '__main__':
         db.session.add_all(payments)
         db.session.commit()
 
-if __name__ == '__main__':
-    with app.app_context():
-        seed_data()
+# if __name__ == '__main__':
+#     with app.app_context():
+#         seed_data()
