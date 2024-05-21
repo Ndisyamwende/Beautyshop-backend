@@ -37,19 +37,6 @@ if __name__ == '__main__':
         category_fragrances = Category(name='Fragrances')
         category_skincare = Category(name='Skincare')
 
-        print('Adding user objects to transaction...')
-        db.session.add_all(users)
-        db.session.commit()
-
-        # Seed Categories
-        print('Creating category objects...')
-        category_makeup = Category(name='Makeup')
-        category_fragrances = Category(name='Fragrances')
-        category_skincare = Category(name='Skincare')
-
-        print('Adding category objects to transaction...')
-        db.session.add_all([category_makeup, category_fragrances, category_skincare])
-        db.session.commit()
         print('Adding category objects to transaction...')
         db.session.add_all([category_makeup, category_fragrances, category_skincare])
         db.session.commit()
