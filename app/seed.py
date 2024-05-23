@@ -1,6 +1,6 @@
 
 from flask_bcrypt import Bcrypt
-from app import app
+from . import app
 from models import db, Product, User, Order, OrderItem, Payment
 from datetime import datetime
 from sqlalchemy import text

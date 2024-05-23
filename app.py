@@ -7,7 +7,7 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from flask_jwt_extended.exceptions import NoAuthorizationError
 # from config import ApplicationConfig
 from flask_cors import CORS
-from models import db, User, Product, OrderItem, Order,  Payment, Contact
+from app.models import db, User, Product, OrderItem, Order,  Payment, Contact
 from flask_restful import Resource, Api
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
@@ -610,5 +610,5 @@ class PaymentResource(Resource):
 
 api.add_resource(PaymentResource, '/payment')
 
-if __name__ == '__main__':
-    app.run(port=5000)
+# if __name__ == '__main__':
+app.run(port=5000)
