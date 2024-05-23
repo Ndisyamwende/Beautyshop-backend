@@ -162,17 +162,17 @@ class OrderItem(db.Model, SerializerMixin):
 
 
 #Category Model
-# class Category(db.Model, SerializerMixin):
-#     __tablename__ = 'categories'
+class Category(db.Model, SerializerMixin):
+    __tablename__ = 'categories'
 
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(100), nullable=False, unique=True)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
 
-#     # relationship with product
-#     products_list = db.relationship('Product', back_populates='category', lazy=True)
+    # relationship with product
+    products_list = db.relationship('Product', back_populates='category', lazy=True)
 
-#     def __repr__(self):
-#         return f"<Category {self.id}, {self.name}>"
+    def __repr__(self):
+        return f"<Category {self.id}, {self.name}>"
 
 
 #payment model
@@ -206,15 +206,23 @@ class Payment(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<Payment {self.id}, {self.amount}, {self.method}, {self.status}>"
     
-class Contact(db.Model, SerializerMixin):
-    __tablename__ ='contacts'
+class Contact(db.Model):
+    __tablename__ = 'contacts'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = db.relationship('User', back_populates='contacts')
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'message': self.message,
+            'user_id': self.user_id
+        }
 
    
 

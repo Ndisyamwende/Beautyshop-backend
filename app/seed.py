@@ -1,7 +1,7 @@
 
 from flask_bcrypt import Bcrypt
-from .app import app
-from .models import db, Category, Product, User, Order, OrderItem, Payment
+from app import app
+from models import db, Product, User, Order, OrderItem, Payment
 from datetime import datetime
 from sqlalchemy import text
 
@@ -11,11 +11,10 @@ def execute_sql(sql):
     """Execute raw SQL."""
     with db.engine.begin() as connection:
         connection.execute(text(sql))
-
 if __name__ == '__main__':
     with app.app_context():
         print("Clearing db...")
-        execute_sql("TRUNCATE TABLE Category, Product, User, Order, OrderItem, Payment  RESTART IDENTITY CASCADE")
+        execute_sql('TRUNCATE TABLE "Product", "User", "Order", "OrderItem", "Payment" RESTART IDENTITY CASCADE')
 
         # Seed Users
         print('Creating user objects...')
